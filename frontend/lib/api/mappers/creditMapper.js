@@ -45,7 +45,10 @@ export function fromApiTransaction(tx) {
   };
 }
 
+export const fromApi = fromApiTransaction;
+
 export default {
+  fromApi,
   fromApiLedger,
   fromApiTransaction,
 };

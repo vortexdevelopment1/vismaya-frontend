@@ -11,26 +11,29 @@ export function fromApi(profile) {
   const userIdObj = profile.userId && typeof profile.userId === "object" ? profile.userId : null;
   const userId = userIdObj ? String(userIdObj._id || userIdObj.id) : (profile.userId ? String(profile.userId) : "");
 
-  const userEmail = userIdObj?.email || profile.contactDetails?.email || "";
-  const userMobile = userIdObj?.mobile || profile.contactDetails?.mobile || "";
-  const userName = userIdObj?.name || profile.contactDetails?.name || "";
+  const userEmail = userIdObj?.email || profile.contactDetails?.email || profile.personal?.email || "";
+  const userMobile = userIdObj?.mobile || profile.contactDetails?.mobile || profile.personal?.phone || "";
+  const userName = userIdObj?.name || profile.contactDetails?.name || profile.personal?.fullName || "";
 
   const computedName = profile.stageName?.trim() || 
+    profile.personal?.stageName?.trim() ||
+    profile.personal?.fullName?.trim() ||
+    profile.personal?.name?.trim() ||
     [profile.firstName, profile.lastName].filter(Boolean).join(" ").trim() ||
     userName ||
     "Anonymous Talent";
 
-  const primaryProfession = profile.primaryProfession || profile.primaryDesignation || "";
-  const location = [profile.currentCity, profile.currentState].filter(Boolean).join(", ") || profile.currentCity || "India";
+  const primaryProfession = profile.primaryProfession || profile.primaryDesignation || profile.personal?.primaryRole || "";
+  const location = [profile.currentCity || profile.personal?.city, profile.currentState || profile.personal?.state].filter(Boolean).join(", ") || profile.currentCity || profile.personal?.city || "India";
 
   // Normalize skills array: supports both [{ name, proficiency }] and ["Acting", "Dance"]
   const skillsList = Array.isArray(profile.skills)
     ? profile.skills.map((s) => (typeof s === "string" ? s : s?.name || "")).filter(Boolean)
-    : [];
+    : (Array.isArray(profile.skillsAndLanguages?.skills) ? profile.skillsAndLanguages.skills : []);
 
   const languagesList = Array.isArray(profile.languages)
     ? profile.languages.map((l) => (typeof l === "string" ? l : l?.language || "")).filter(Boolean)
-    : [];
+    : (Array.isArray(profile.skillsAndLanguages?.languages) ? profile.skillsAndLanguages.languages : []);
 
   const photosList = Array.isArray(profile.portfolio?.photos)
     ? profile.portfolio.photos
@@ -48,16 +51,28 @@ export function fromApi(profile) {
     vismayaId: profile.vismayaId || id,
     userId,
     name: computedName,
-    stageName: profile.stageName || "",
+    stageName: profile.stageName || profile.personal?.stageName || "",
     firstName: profile.firstName || "",
     middleName: profile.middleName || "",
     lastName: profile.lastName || "",
     headline: profile.headline || "",
-    bio: profile.bio || "",
-    profilePhoto: profile.profilePhoto || photosList[0] || "",
-    avatar: profile.profilePhoto || photosList[0] || "",
-    dob: profile.dob ? new Date(profile.dob).toISOString().split("T")[0] : "",
-    gender: profile.gender || "prefer_not_to_say",
+    bio: profile.bio || profile.personal?.bio || "",
+    personal: {
+      fullName: computedName,
+      stageName: profile.stageName || profile.personal?.stageName || "",
+      dob: profile.dob || profile.personal?.dob || "",
+      gender: profile.gender || profile.personal?.gender || "",
+      city: profile.currentCity || profile.personal?.city || "",
+      state: profile.currentState || profile.personal?.state || "",
+      email: userEmail,
+      phone: userMobile,
+      bio: profile.bio || profile.personal?.bio || "",
+      primaryRole: primaryProfession,
+    },
+    profilePhoto: profile.profilePhoto || profile.avatar || photosList[0] || "",
+    avatar: profile.profilePhoto || profile.avatar || photosList[0] || "",
+    dob: profile.dob ? new Date(profile.dob).toISOString().split("T")[0] : (profile.personal?.dob || ""),
+    gender: profile.gender || profile.personal?.gender || "prefer_not_to_say",
     nationality: profile.nationality || "Indian",
     careerStage: profile.careerStage || "aspiring",
     category: profile.category || "open_talent",

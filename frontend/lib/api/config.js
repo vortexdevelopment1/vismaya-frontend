@@ -40,12 +40,23 @@ export const API_MODULES = rawModules
  * @returns {boolean}
  */
 export function isRealMode(moduleName) {
-  if (USE_MOCK) return false;
+  const currentUseMock = process.env.NEXT_PUBLIC_USE_MOCK;
+  const isMock = currentUseMock === undefined || currentUseMock === "" 
+    ? true 
+    : currentUseMock.toLowerCase() !== "false";
+
+  if (isMock) return false;
   if (!moduleName) return true;
-  if (API_MODULES.length === 0 || API_MODULES.includes("*") || API_MODULES.includes("all")) {
+
+  const currentModules = (process.env.NEXT_PUBLIC_API_MODULES || "").toLowerCase().trim();
+  const modulesList = currentModules
+    ? currentModules.split(",").map((m) => m.trim()).filter(Boolean)
+    : [];
+
+  if (modulesList.length === 0 || modulesList.includes("*") || modulesList.includes("all")) {
     return true;
   }
-  return API_MODULES.includes(moduleName.toLowerCase().trim());
+  return modulesList.includes(moduleName.toLowerCase().trim());
 }
 
 export const API_CONFIG = {

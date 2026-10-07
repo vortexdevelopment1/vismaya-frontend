@@ -166,7 +166,9 @@ export async function apiFetch(endpoint, options = {}) {
     clearTimeout(timeoutId);
 
     // Parse JSON or plain text
-    const contentType = response.headers.get("content-type") || "";
+    const contentType = (response.headers && typeof response.headers.get === "function")
+      ? (response.headers.get("content-type") || "")
+      : (response.headers && response.headers["content-type"]) || "";
     let data;
     if (contentType.includes("application/json")) {
       try {
