@@ -221,12 +221,6 @@ export default function StatusBadge({
       border: "rgba(255, 255, 255, 0.14)",
       label: "Withdrawn",
     },
-    suspended: {
-      bg: "rgba(255, 107, 107, 0.14)",
-      text: "#ff6b6b",
-      border: "rgba(255, 107, 107, 0.35)",
-      label: "Suspended",
-    },
     restricted: {
       bg: "rgba(255, 107, 107, 0.14)",
       text: "#ff6b6b",
