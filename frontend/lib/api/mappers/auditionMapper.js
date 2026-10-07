@@ -1,0 +1,132 @@
+/**
+ * Audition Entity Mapper
+ */
+
+import { toFrontendStatus, toBackendStatus } from "../statusMapper.js";
+
+export function fromApi(audition) {
+  if (!audition) return null;
+
+  const id = audition._id ? String(audition._id) : (audition.id ? String(audition.id) : "");
+
+  // Extract Populated Entities
+  const appObj = audition.applicationId && typeof audition.applicationId === "object" ? audition.applicationId : null;
+  const applicationId = appObj ? String(appObj._id || appObj.id) : (audition.applicationId ? String(audition.applicationId) : "");
+
+  const oppObj = audition.opportunityId && typeof audition.opportunityId === "object" ? audition.opportunityId : null;
+  const opportunityId = oppObj ? String(oppObj._id || oppObj.id) : (audition.opportunityId ? String(audition.opportunityId) : "");
+  const opportunityTitle = oppObj?.title || audition.opportunityTitle || "";
+
+  const projObj = audition.projectId && typeof audition.projectId === "object" ? audition.projectId : null;
+  const projectId = projObj ? String(projObj._id || projObj.id) : (audition.projectId ? String(audition.projectId) : "");
+  const projectName = projObj?.projectName || projObj?.title || audition.projectName || "";
+
+  const orgObj = audition.organizationId && typeof audition.organizationId === "object" ? audition.organizationId : null;
+  const organizationId = orgObj ? String(orgObj._id || orgObj.id) : (audition.organizationId ? String(audition.organizationId) : "");
+
+  const talentObj = audition.talentId && typeof audition.talentId === "object" ? audition.talentId : null;
+  const talentId = talentObj ? String(talentObj._id || talentObj.id) : (audition.talentId ? String(audition.talentId) : "");
+  const talentName = talentObj?.name || audition.talentName || "Talent Actor";
+  const talentEmail = talentObj?.email || audition.talentEmail || "";
+  const talentAvatar = talentObj?.profilePhoto || talentObj?.avatar || audition.talentAvatar || "";
+
+  // Normalize self tape submission
+  const selfTape = audition.selfTapeSubmission ? {
+    videoUrl: audition.selfTapeSubmission.videoUrl || "",
+    thumbnailUrl: audition.selfTapeSubmission.thumbnailUrl || "",
+    durationSeconds: audition.selfTapeSubmission.durationSeconds || null,
+    fileSizeBytes: audition.selfTapeSubmission.fileSizeBytes || null,
+    notes: audition.selfTapeSubmission.notes || "",
+    submittedAt: audition.selfTapeSubmission.submittedAt ? new Date(audition.selfTapeSubmission.submittedAt).toISOString() : null,
+  } : null;
+
+  return {
+    id,
+    _id: id,
+    applicationId,
+    opportunityId,
+    opportunityTitle,
+    projectId,
+    projectName,
+    organizationId,
+    orgId: organizationId,
+    talentId,
+    talentName,
+    talentEmail,
+    talentAvatar,
+    type: audition.type || "self_tape",
+    role: audition.role || oppObj?.role || "Lead Role",
+    sceneBrief: audition.sceneBrief || "",
+    instructions: audition.instructions || "",
+    scriptUrl: audition.scriptUrl || "",
+    meetingLink: audition.meetingLink || "",
+    location: audition.location || "",
+    scheduledAt: audition.scheduledAt ? new Date(audition.scheduledAt).toISOString() : null,
+    scheduledDate: audition.scheduledAt ? new Date(audition.scheduledAt).toISOString().split("T")[0] : "",
+    deadline: audition.deadline ? new Date(audition.deadline).toISOString().split("T")[0] : "",
+    status: toFrontendStatus("audition", audition.status || "requested"),
+    rawStatus: audition.status || "requested",
+    selfTapeSubmission: selfTape,
+    submission: selfTape,
+    feedback: audition.organizationFeedback || "",
+    organizationFeedback: audition.organizationFeedback || "",
+    rating: audition.organizationRating || null,
+    organizationRating: audition.organizationRating || null,
+    reviewedAt: audition.reviewedAt ? new Date(audition.reviewedAt).toISOString() : null,
+    createdAt: audition.createdAt ? new Date(audition.createdAt).toISOString() : new Date().toISOString(),
+  };
+}
+
+export function toApi(audition) {
+  if (!audition) return {};
+
+  const payload = {
+    applicationId: audition.applicationId,
+    opportunityId: audition.opportunityId,
+    projectId: audition.projectId,
+    type: audition.type || "self_tape",
+    role: audition.role,
+    sceneBrief: audition.sceneBrief,
+    instructions: audition.instructions,
+    scriptUrl: audition.scriptUrl,
+    meetingLink: audition.meetingLink,
+    location: audition.location,
+  };
+
+  if (audition.scheduledAt || audition.scheduledDate) {
+    payload.scheduledAt = new Date(audition.scheduledAt || audition.scheduledDate).toISOString();
+  }
+
+  if (audition.deadline) {
+    payload.deadline = new Date(audition.deadline).toISOString();
+  }
+
+  if (audition.status) {
+    payload.status = toBackendStatus("audition", audition.status);
+  }
+
+  if (audition.selfTapeSubmission || audition.videoUrl) {
+    payload.selfTapeSubmission = {
+      videoUrl: audition.selfTapeSubmission?.videoUrl || audition.videoUrl,
+      thumbnailUrl: audition.selfTapeSubmission?.thumbnailUrl || audition.thumbnailUrl,
+      durationSeconds: audition.selfTapeSubmission?.durationSeconds,
+      fileSizeBytes: audition.selfTapeSubmission?.fileSizeBytes,
+      notes: audition.selfTapeSubmission?.notes || audition.notes,
+    };
+  }
+
+  if (audition.organizationFeedback || audition.feedback) {
+    payload.organizationFeedback = audition.organizationFeedback || audition.feedback;
+  }
+
+  if (audition.organizationRating || audition.rating) {
+    payload.organizationRating = Number(audition.organizationRating || audition.rating);
+  }
+
+  return payload;
+}
+
+export default {
+  fromApi,
+  toApi,
+};

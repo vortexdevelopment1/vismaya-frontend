@@ -10,3 +10,7 @@ venv/
 .venv/
 dist/
 build/
+
+scratch/
+vismaya-backend/
+vismaya-backend-frontend-gap-report.pdf

@@ -53,6 +53,18 @@ export default function StatusBadge({
       border: "rgba(52, 211, 153, 0.35)",
       label: "Paid",
     },
+    successful: {
+      bg: "rgba(52, 211, 153, 0.14)",
+      text: "#34d399",
+      border: "rgba(52, 211, 153, 0.35)",
+      label: "Paid",
+    },
+    completed: {
+      bg: "rgba(52, 211, 153, 0.14)",
+      text: "#34d399",
+      border: "rgba(52, 211, 153, 0.35)",
+      label: "Completed",
+    },
     shortlisted: {
       bg: "rgba(255, 188, 0, 0.14)",
       text: "#ffbc00",
@@ -71,11 +83,35 @@ export default function StatusBadge({
       border: "rgba(255, 188, 0, 0.35)",
       label: "Audition Scheduled",
     },
+    scheduled: {
+      bg: "rgba(255, 188, 0, 0.14)",
+      text: "#ffbc00",
+      border: "rgba(255, 188, 0, 0.35)",
+      label: "Audition Scheduled",
+    },
     "under-review": {
       bg: "rgba(255, 188, 0, 0.14)",
       text: "#ffbc00",
       border: "rgba(255, 188, 0, 0.35)",
       label: "Under Review",
+    },
+    "under-vismaya-review": {
+      bg: "rgba(255, 188, 0, 0.14)",
+      text: "#ffbc00",
+      border: "rgba(255, 188, 0, 0.35)",
+      label: "Under Review",
+    },
+    "corrections-requested": {
+      bg: "rgba(255, 188, 0, 0.14)",
+      text: "#ffbc00",
+      border: "rgba(255, 188, 0, 0.35)",
+      label: "Corrections Requested",
+    },
+    "cancellation-requested": {
+      bg: "rgba(255, 188, 0, 0.14)",
+      text: "#ffbc00",
+      border: "rgba(255, 188, 0, 0.35)",
+      label: "Cancellation Requested",
     },
     pending: {
       bg: "rgba(255, 188, 0, 0.14)",
@@ -88,6 +124,42 @@ export default function StatusBadge({
       text: "#ffbc00",
       border: "rgba(255, 188, 0, 0.35)",
       label: "Submitted",
+    },
+    "audition-requested": {
+      bg: "rgba(255, 188, 0, 0.14)",
+      text: "#ffbc00",
+      border: "rgba(255, 188, 0, 0.35)",
+      label: "Audition Requested",
+    },
+    requested: {
+      bg: "rgba(255, 188, 0, 0.14)",
+      text: "#ffbc00",
+      border: "rgba(255, 188, 0, 0.35)",
+      label: "Audition Requested",
+    },
+    "relayed-to-talent": {
+      bg: "rgba(255, 188, 0, 0.14)",
+      text: "#ffbc00",
+      border: "rgba(255, 188, 0, 0.35)",
+      label: "Relayed to Talent",
+    },
+    "self-tape-received": {
+      bg: "rgba(52, 211, 153, 0.14)",
+      text: "#34d399",
+      border: "rgba(52, 211, 153, 0.35)",
+      label: "Self-Tape Received",
+    },
+    "forwarded-to-org": {
+      bg: "rgba(52, 211, 153, 0.14)",
+      text: "#34d399",
+      border: "rgba(52, 211, 153, 0.35)",
+      label: "Forwarded to Org",
+    },
+    reviewed: {
+      bg: "rgba(52, 211, 153, 0.14)",
+      text: "#34d399",
+      border: "rgba(52, 211, 153, 0.35)",
+      label: "Reviewed",
     },
     applied: {
       bg: "rgba(255, 255, 255, 0.08)",
@@ -106,6 +178,18 @@ export default function StatusBadge({
       text: "#ff6b6b",
       border: "rgba(255, 107, 107, 0.35)",
       label: "Rejected",
+    },
+    cancelled: {
+      bg: "rgba(255, 107, 107, 0.14)",
+      text: "#ff6b6b",
+      border: "rgba(255, 107, 107, 0.35)",
+      label: "Cancelled",
+    },
+    closed: {
+      bg: "rgba(255, 255, 255, 0.06)",
+      text: "#a3acc2",
+      border: "rgba(255, 255, 255, 0.14)",
+      label: "Closed",
     },
     "not-selected": {
       bg: "rgba(255, 107, 107, 0.14)",
@@ -136,6 +220,30 @@ export default function StatusBadge({
       text: "#a3acc2",
       border: "rgba(255, 255, 255, 0.14)",
       label: "Withdrawn",
+    },
+    suspended: {
+      bg: "rgba(255, 107, 107, 0.14)",
+      text: "#ff6b6b",
+      border: "rgba(255, 107, 107, 0.35)",
+      label: "Suspended",
+    },
+    restricted: {
+      bg: "rgba(255, 107, 107, 0.14)",
+      text: "#ff6b6b",
+      border: "rgba(255, 107, 107, 0.35)",
+      label: "Restricted",
+    },
+    banned: {
+      bg: "rgba(255, 107, 107, 0.14)",
+      text: "#ff6b6b",
+      border: "rgba(255, 107, 107, 0.35)",
+      label: "Banned",
+    },
+    live: {
+      bg: "rgba(52, 211, 153, 0.14)",
+      text: "#34d399",
+      border: "rgba(52, 211, 153, 0.35)",
+      label: "Live",
     },
   };
 
