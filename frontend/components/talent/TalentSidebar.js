@@ -2,16 +2,19 @@
 
 import React, { useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { LogOut, X } from "lucide-react";
 import Logo from "@/components/Logo";
 import { talentNav } from "@/lib/talent/nav";
 import { useTalent } from "@/lib/talent/TalentContext";
 import { useWorkflow } from "@/lib/shared/workflowStore";
+import { useAuth } from "@/context/AuthContext";
 import StatusBadge from "@/components/shared/StatusBadge";
 
 export default function TalentSidebar({ mobileOpen = false, onCloseMobile }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { logout } = useAuth();
   const { profile } = useTalent();
   const { applications, auditions, unreadNotificationsCount } = useWorkflow();
 
@@ -322,6 +325,11 @@ export default function TalentSidebar({ mobileOpen = false, onCloseMobile }) {
 
             <Link
               href="/login"
+              onClick={async (e) => {
+                e.preventDefault();
+                await logout();
+                router.push("/login");
+              }}
               title="Logout of Vismaya"
               style={{
                 color: "#a3acc2",

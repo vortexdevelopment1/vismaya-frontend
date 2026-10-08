@@ -1,14 +1,67 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import PublicNav from "@/components/PublicNav";
 import PublicFooter from "@/components/PublicFooter";
-import { ArrowRight, User, Mail, Lock, Sparkles, Building2 } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import { ArrowRight, User, Mail, Lock, Building2, AlertCircle } from "lucide-react";
 
 export default function RegisterPage() {
+  const router = useRouter();
+  const { register, getDashboardPath } = useAuth();
+
   const [selectedRole, setSelectedRole] = useState("talent");
+  const [name, setName] = useState("Aanya Sharma");
+  const [email, setEmail] = useState("aanya.sharma@vismaya.io");
+  const [password, setPassword] = useState("secretpassword123");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState("");
+
+  const handleRoleChange = (role) => {
+    setSelectedRole(role);
+    if (role === "organization") {
+      setName("Zee Films Studio");
+      setEmail("casting@zeefilms.com");
+    } else {
+      setName("Aanya Sharma");
+      setEmail("aanya.sharma@vismaya.io");
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!name || !email || !password) {
+      setFormError("Please fill in all required registration fields.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setFormError("");
+
+    try {
+      const payload = {
+        role: selectedRole === "organization" ? "organization" : "talent",
+        email,
+        password,
+        name: name.trim(),
+        studioName: selectedRole === "organization" ? name.trim() : undefined,
+      };
+
+      const res = await register(payload);
+      if (res.success && res.user) {
+        router.push(getDashboardPath());
+      } else {
+        setFormError(res.error || "Registration failed. Please try again.");
+      }
+    } catch (err) {
+      setFormError(err.message || "An unexpected error occurred.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", width: "100%", backgroundColor: "var(--bg-primary)" }}>
@@ -74,7 +127,27 @@ export default function RegisterPage() {
               </p>
             </div>
 
-            <form onSubmit={(e) => e.preventDefault()} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            {formError && (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  padding: "12px 14px",
+                  backgroundColor: "rgba(239, 68, 68, 0.15)",
+                  border: "1px solid rgba(239, 68, 68, 0.35)",
+                  borderRadius: "10px",
+                  color: "#fca5a5",
+                  fontSize: "13px",
+                  marginBottom: "16px",
+                }}
+              >
+                <AlertCircle size={16} style={{ flexShrink: 0 }} />
+                <span>{formError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
               {/* Role Selection */}
               <div>
                 <label style={{ display: "block", fontSize: "12px", fontWeight: "700", color: "#a3acc2", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "0.04em" }}>
@@ -83,7 +156,7 @@ export default function RegisterPage() {
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
                   <button
                     type="button"
-                    onClick={() => setSelectedRole("talent")}
+                    onClick={() => handleRoleChange("talent")}
                     style={{
                       height: "44px",
                       borderRadius: "10px",
@@ -103,7 +176,7 @@ export default function RegisterPage() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => setSelectedRole("organization")}
+                    onClick={() => handleRoleChange("organization")}
                     style={{
                       height: "44px",
                       borderRadius: "10px",
@@ -137,8 +210,10 @@ export default function RegisterPage() {
                   <input
                     type="text"
                     placeholder={selectedRole === "organization" ? "e.g. Zee Films Studio" : "e.g. Aanya Sharma"}
-                    defaultValue={selectedRole === "organization" ? "Zee Films Studio" : "Aanya Sharma"}
-                    style={{ paddingLeft: "42px" }}
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                    style={{ paddingLeft: "42px", width: "100%" }}
                   />
                 </div>
               </div>
@@ -152,8 +227,10 @@ export default function RegisterPage() {
                   <input
                     type="email"
                     placeholder={selectedRole === "organization" ? "casting@studio.com" : "name@example.com"}
-                    defaultValue={selectedRole === "organization" ? "casting@zeefilms.com" : "aanya.sharma@vismaya.io"}
-                    style={{ paddingLeft: "42px" }}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    style={{ paddingLeft: "42px", width: "100%" }}
                   />
                 </div>
               </div>
@@ -167,20 +244,23 @@ export default function RegisterPage() {
                   <input
                     type="password"
                     placeholder="Minimum 8 characters"
-                    defaultValue="secretpassword123"
-                    style={{ paddingLeft: "42px" }}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    style={{ paddingLeft: "42px", width: "100%" }}
                   />
                 </div>
               </div>
 
-              <Link
-                href={selectedRole === "organization" ? "/recruiter/dashboard" : "/talent/dashboard"}
+              <button
+                type="submit"
+                disabled={isSubmitting}
                 className="btn-primary"
-                style={{ width: "100%", justifyContent: "center", marginTop: "6px" }}
+                style={{ width: "100%", justifyContent: "center", marginTop: "6px", cursor: isSubmitting ? "not-allowed" : "pointer" }}
               >
-                <span>Complete Registration</span>
+                <span>{isSubmitting ? "Creating Account..." : "Complete Registration"}</span>
                 <ArrowRight size={15} />
-              </Link>
+              </button>
             </form>
 
             <div style={{ textAlign: "center", marginTop: "24px", fontSize: "13px", color: "#a3acc2" }}>

@@ -90,10 +90,14 @@ function AdminLayoutContent({ children }) {
   );
 }
 
+import RequireRole from "@/components/auth/RequireRole";
+
 export default function AdminLayout({ children }) {
   return (
-    <AdminProvider>
-      <AdminLayoutContent>{children}</AdminLayoutContent>
-    </AdminProvider>
+    <RequireRole allowedRoles={["admin"]}>
+      <AdminProvider>
+        <AdminLayoutContent>{children}</AdminLayoutContent>
+      </AdminProvider>
+    </RequireRole>
   );
 }

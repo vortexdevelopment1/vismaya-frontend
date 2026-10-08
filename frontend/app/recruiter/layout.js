@@ -143,10 +143,14 @@ function RecruiterLayoutContent({ children }) {
   );
 }
 
+import RequireRole from "@/components/auth/RequireRole";
+
 export default function RecruiterLayout({ children }) {
   return (
-    <RecruiterProvider>
-      <RecruiterLayoutContent>{children}</RecruiterLayoutContent>
-    </RecruiterProvider>
+    <RequireRole allowedRoles={["recruiter", "organization"]}>
+      <RecruiterProvider>
+        <RecruiterLayoutContent>{children}</RecruiterLayoutContent>
+      </RecruiterProvider>
+    </RequireRole>
   );
 }

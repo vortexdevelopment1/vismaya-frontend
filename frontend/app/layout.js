@@ -1,6 +1,7 @@
 import { Playfair_Display, Inter } from "next/font/google";
 import "./globals.css";
 import { WorkflowProvider } from "@/lib/shared/workflowStore";
+import { AuthProvider } from "@/context/AuthContext";
 
 const playfairDisplay = Playfair_Display({
   subsets: ["latin"],
@@ -26,7 +27,9 @@ export default function RootLayout({ children }) {
     <html lang="en" className={`${playfairDisplay.variable} ${inter.variable}`}>
       <body>
         <WorkflowProvider>
-          {children}
+          <AuthProvider>
+            {children}
+          </AuthProvider>
         </WorkflowProvider>
       </body>
     </html>

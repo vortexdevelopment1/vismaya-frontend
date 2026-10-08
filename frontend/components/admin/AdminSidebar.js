@@ -2,16 +2,19 @@
 
 import React, { useEffect, useMemo } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { LogOut, X, ShieldCheck } from "lucide-react";
 import Logo from "@/components/Logo";
 import { adminNavSections, adminNav } from "@/lib/admin/nav";
 import { useAdmin } from "@/lib/admin/AdminContext";
+import { useAuth } from "@/context/AuthContext";
 import StatusBadge from "@/components/shared/StatusBadge";
 import { useWorkflow } from "@/lib/shared/workflowStore";
 
 export default function AdminSidebar({ mobileOpen = false, onCloseMobile }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { logout } = useAuth();
   const {
     pendingTalentsCount,
     pendingRecruitersCount,
@@ -384,6 +387,11 @@ export default function AdminSidebar({ mobileOpen = false, onCloseMobile }) {
 
             <Link
               href="/login"
+              onClick={async (e) => {
+                e.preventDefault();
+                await logout();
+                router.push("/login");
+              }}
               title="Logout of Admin Console"
               style={{
                 color: "#a3acc2",

@@ -83,10 +83,14 @@ function TalentLayoutContent({ children }) {
   );
 }
 
+import RequireRole from "@/components/auth/RequireRole";
+
 export default function TalentLayout({ children }) {
   return (
-    <TalentProvider>
-      <TalentLayoutContent>{children}</TalentLayoutContent>
-    </TalentProvider>
+    <RequireRole allowedRoles={["talent"]}>
+      <TalentProvider>
+        <TalentLayoutContent>{children}</TalentLayoutContent>
+      </TalentProvider>
+    </RequireRole>
   );
 }

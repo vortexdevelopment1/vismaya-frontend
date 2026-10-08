@@ -2,16 +2,19 @@
 
 import React, { useEffect } from "react";
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { LogOut, X, Building2 } from "lucide-react";
 import Logo from "@/components/Logo";
 import { recruiterNav, getActiveRecruiterNavItem } from "@/lib/recruiter/nav";
 import { useRecruiter } from "@/lib/recruiter/RecruiterContext";
 import { useWorkflow } from "@/lib/shared/workflowStore";
+import { useAuth } from "@/context/AuthContext";
 import StatusBadge from "@/components/shared/StatusBadge";
 
 export default function RecruiterSidebar({ mobileOpen = false, onCloseMobile }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { logout } = useAuth();
   const searchParams = useSearchParams();
   const fromParam = searchParams?.get("from");
   const { unreadNotificationsCount: oldUnread, companyProfile } = useRecruiter();
@@ -313,6 +316,11 @@ export default function RecruiterSidebar({ mobileOpen = false, onCloseMobile }) 
 
             <Link
               href="/login"
+              onClick={async (e) => {
+                e.preventDefault();
+                await logout();
+                router.push("/login");
+              }}
               title="Logout of Organization Portal"
               style={{
                 color: "#a3acc2",
