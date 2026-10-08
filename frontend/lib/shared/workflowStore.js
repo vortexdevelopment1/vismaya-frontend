@@ -2332,7 +2332,7 @@ export function WorkflowProvider({ children }) {
   const requestCancellation = async (opportunityId, reason) => {
     if (isRealMode("recruiter")) {
       try {
-        await recruiterService.requestCancellation(opportunityId, { reason });
+        await recruiterService.requestOpportunityCancellation(opportunityId, { reason });
       } catch (err) {
         console.warn("Real requestCancellation failed:", err);
       }
@@ -2343,7 +2343,7 @@ export function WorkflowProvider({ children }) {
   const adminResolveCancellation = async (requestId, decision, adminNote) => {
     if (isRealMode("admin")) {
       try {
-        await adminService.resolveCancellation(requestId, { decision, adminNote });
+        await adminService.reviewOpportunityCancellation(requestId, { decision, adminNote });
       } catch (err) {
         console.warn("Real adminResolveCancellation failed:", err);
       }
@@ -2444,7 +2444,7 @@ export function WorkflowProvider({ children }) {
   const adminForwardSelfTape = async (auditionId, note) => {
     if (isRealMode("admin")) {
       try {
-        await adminService.forwardSelfTape(auditionId, { notes: note });
+        await adminService.forwardAudition(auditionId, { notes: note });
       } catch (err) {
         console.warn("Real adminForwardSelfTape failed:", err);
       }

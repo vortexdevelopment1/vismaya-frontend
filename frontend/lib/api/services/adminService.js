@@ -686,7 +686,25 @@ export const adminService = {
     return apiClient.get(`/api/admin/export/${type}`);
   },
 
-  // Aliases for backward compatibility
+  // Aliases for backward compatibility & dispatching
+  async reviewOpportunity(opportunityId, payload = {}) {
+    const status = String(payload.status || "").toLowerCase().trim();
+    if (status.includes("publish") || status.includes("approve")) {
+      return this.approveOpportunity(opportunityId);
+    }
+    if (status.includes("reject")) {
+      return this.rejectOpportunity(opportunityId, { rejectionReason: payload.adminNote || payload.reason });
+    }
+    if (status.includes("change") || status.includes("correction") || status.includes("request")) {
+      return this.requestOpportunityCorrections(opportunityId, { correctionNotes: payload.adminNote || payload.notes || payload.reason });
+    }
+    return this.approveOpportunity(opportunityId);
+  },
+  async resolveCancellation(requestId, payload) { return this.reviewOpportunityCancellation(requestId, payload); },
+  async forwardSelfTape(auditionId, payload) { return this.forwardAudition(auditionId, payload); },
+  async createBroadcast(payload) { return this.sendBroadcast(payload); },
+  async saveBroadcastDraft(payload) { return this.sendBroadcast({ ...payload, scheduledFor: payload.scheduledFor || "draft" }); },
+  async cancelBroadcast(broadcastId) { return this.deleteBroadcast(broadcastId); },
   async listTalents(params) { return this.getTalentDirectory(params); },
   async listOrganizations(params) { return this.getOrganizationDirectory(params); },
   async getAuditionsForRelay(params) { return this.getPendingAuditions(params); },

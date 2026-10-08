@@ -31,6 +31,13 @@ export const notificationService = {
     };
   },
 
+  /**
+   * Alias for getMyNotifications
+   */
+  async getNotifications() {
+    return this.getMyNotifications();
+  },
+
 
   /**
    * Get unread notifications count

@@ -38,10 +38,14 @@ export function RecruiterProvider({ children }) {
     let mounted = true;
     async function loadRecruiterData() {
       try {
-        const [orgRes, oppsRes, notifRes] = await Promise.allSettled([
-          recruiterService.getMyOrganization(),
-          recruiterService.getOpportunities(),
-          notificationService.getNotifications(),
+        const [orgRes, oppsRes, notifRes, projRes, creditRes, audRes, favRes] = await Promise.allSettled([
+          recruiterService.getOrganizationProfile(),
+          recruiterService.getMyOpportunities(),
+          notificationService.getMyNotifications(),
+          recruiterService.getMyProjects(),
+          recruiterService.getCreditBalance(),
+          recruiterService.getOrganizationAuditions(),
+          recruiterService.getFavourites(),
         ]);
 
         if (mounted) {
@@ -53,6 +57,9 @@ export function RecruiterProvider({ children }) {
           }
           if (notifRes.status === "fulfilled" && Array.isArray(notifRes.value?.data)) {
             setNotifications(notifRes.value.data);
+          }
+          if (creditRes.status === "fulfilled" && creditRes.value?.balance !== undefined) {
+            setCompanyProfile((prev) => ({ ...prev, credits: creditRes.value.balance }));
           }
         }
       } catch (err) {
@@ -217,12 +224,12 @@ export function RecruiterProvider({ children }) {
   const deleteRequirement = async (id) => {
     if (isRealMode("recruiter")) {
       try {
-        await recruiterService.deleteOpportunity(id);
+        await recruiterService.requestOpportunityCancellation(id, { reason: "Cancellation requested by recruiter" });
       } catch (err) {
         addToast({
           type: "danger",
-          title: "Delete Failed",
-          message: err?.message || "Could not delete requirement.",
+          title: "Cancellation Failed",
+          message: err?.message || "Could not request requirement cancellation.",
         });
         throw err;
       }
@@ -330,7 +337,7 @@ export function RecruiterProvider({ children }) {
   const updateCompanyProfile = async (updatedFields) => {
     if (isRealMode("recruiter")) {
       try {
-        const res = await recruiterService.updateOrganization(updatedFields);
+        const res = await recruiterService.saveOrganizationProfile(updatedFields);
         if (res?.data) {
           setCompanyProfile((prev) => ({ ...prev, ...res.data }));
         } else {
@@ -355,6 +362,115 @@ export function RecruiterProvider({ children }) {
     });
   };
 
+  // Credit & Shortlist Actions
+  const unlockTalentProfile = async (talentId) => {
+    if (isRealMode("recruiter")) {
+      try {
+        const res = await recruiterService.unlockTalentProfile(talentId);
+        addToast({
+          type: "success",
+          title: "Talent Profile Unlocked",
+          message: "Full contact & representative details are now accessible.",
+        });
+        return res;
+      } catch (err) {
+        addToast({
+          type: "danger",
+          title: "Unlock Failed",
+          message: err?.message || "Could not unlock talent profile.",
+        });
+        throw err;
+      }
+    }
+
+    addToast({
+      type: "success",
+      title: "Talent Profile Unlocked (Mock)",
+      message: "1 credit consumed.",
+    });
+  };
+
+  const addFavourite = async (talentId) => {
+    if (isRealMode("recruiter")) {
+      try {
+        const res = await recruiterService.addFavourite(talentId);
+        addToast({
+          type: "success",
+          title: "Added to Favourites",
+          message: "Artist saved to your organization talent shortlist.",
+        });
+        return res;
+      } catch (err) {
+        addToast({
+          type: "danger",
+          title: "Action Failed",
+          message: err?.message || "Could not add to favourites.",
+        });
+        throw err;
+      }
+    }
+
+    addToast({
+      type: "success",
+      title: "Added to Favourites (Mock)",
+      message: "Saved to private favourites list.",
+    });
+  };
+
+  const removeFavourite = async (talentId) => {
+    if (isRealMode("recruiter")) {
+      try {
+        const res = await recruiterService.removeFavourite(talentId);
+        addToast({
+          type: "info",
+          title: "Removed from Favourites",
+          message: "Artist removed from favourites list.",
+        });
+        return res;
+      } catch (err) {
+        addToast({
+          type: "danger",
+          title: "Action Failed",
+          message: err?.message || "Could not remove from favourites.",
+        });
+        throw err;
+      }
+    }
+
+    addToast({
+      type: "info",
+      title: "Removed (Mock)",
+      message: "Removed from private favourites.",
+    });
+  };
+
+  const addToProjectShortlist = async (projectId, payload) => {
+    if (isRealMode("projects")) {
+      try {
+        const res = await recruiterService.addToShortlist(projectId, payload);
+        addToast({
+          type: "success",
+          title: "Added to Project Shortlist",
+          message: "Artist shortlisted for project role.",
+        });
+        return res;
+      } catch (err) {
+        addToast({
+          type: "danger",
+          title: "Shortlist Action Failed",
+          message: err?.message || "Could not add artist to project shortlist.",
+        });
+        throw err;
+      }
+    }
+
+    addToast({
+      type: "success",
+      title: "Shortlisted (Mock)",
+      message: "Artist added to project roster.",
+    });
+  };
+
   // Derived Counts
   const unreadNotificationsCount = notifications.filter((n) => !n.read).length;
   const shortlistsReadyCount = requirements.filter(
@@ -373,6 +489,10 @@ export function RecruiterProvider({ children }) {
         shortlistedTalent,
         setCandidatePreference,
         sendFeedbackToAdmin,
+        unlockTalentProfile,
+        addFavourite,
+        removeFavourite,
+        addToProjectShortlist,
         notifications,
         markAsRead,
         markAllAsRead,

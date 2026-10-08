@@ -1,0 +1,81 @@
+Vismaya Creative Studios
+ Round 28 — Industry Opportunity & Project Workflow
+#
+Feature
+Final Decision
+1
+Opportunity Creation
+Organization submits opportunity to Vismaya
+2
+Opportunity Types
+All relevant talent/project opportunity types
+3
+Project Association
+Every opportunity belongs to a project
+4
+Project Creation
+Organization creates project details during submission
+5
+Opportunity Approval
+Every opportunity requires Vismaya approval
+6
+Public Opportunity Info
+Title + summary + role + location + deadline + remuneration
+7
+Restricted Information
+Full brief available to every logged-in user
+8
+Application Eligibility
+Organization defines eligibility requirements
+9
+Application Source
+Talent applies through Vismaya
+10
+Application Materials
+Talent profile only
+11
+Application Screening
+Organization reviews applicants through Vismaya
+12
+Applicant Shortlisting
+Organization can shortlist applicants
+13
+Audition/Interview
+Organization can request audition/interview through Vismaya
+14
+Audition Materials
+Self-tape/video can be submitted through Vismaya
+15
+Application Status
+Applied → Under Review → Shortlisted → Selected / Not Selected
+16
+Talent Withdrawal
+Talent can withdraw anytime
+17
+Organization Cancellation
+Organization requests cancellation through Vismaya
+18
+Opportunity Deadline
+Mandatory deadline + automatic closure
+19
+Project Completion
+Organization can mark project/opportunity completed
+20
+Workflow Principle
+Submit → Vismaya Review → Publish → Talent Applications → Organization Screening →
+Shortlist → Audition/Interview → Selection → Project Completion
+Current Vismaya Opportunity Architecture
+Organization → Project → Opportunity → Vismaya Review → Publication → Applications → Screening →
+Shortlisting → Audition/Interview → Selection → Project Completion
+Immediate Actions / Locked Rules
+1. Every opportunity is tied to a project.
+2. Vismaya approves every opportunity before publication.
+3. Talent applies only through Vismaya.
+4. Organizations handle applicant screening and shortlisting.
+5. Auditions/interviews and self-tapes can run through Vismaya.
+
+6. Talent can withdraw an application at any time.
+7. Organization cancellation requires a Vismaya request.
+8. Deadlines are mandatory and opportunities close automatically.
+9. Selection and project completion are recorded on the platform.
+ Document scope: Finalized Round 28 decisions and immediate workflow actions.

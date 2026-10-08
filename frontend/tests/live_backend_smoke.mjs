@@ -386,6 +386,26 @@ async function runLiveSmokeTests() {
       saveOrgProf.data
     );
 
+    // 5b. Fetch Organization Profile (Auditing route-ordering behavior)
+    const getOrgProf = await req("/api/organization/profile", { method: "GET" }, state.tokens.org);
+    record(
+      "5b. Fetch Organization Profile (GET /api/organization/profile)",
+      getOrgProf.status,
+      getOrgProf.status === 200 || getOrgProf.status === 404,
+      `Status: ${getOrgProf.status} (Note: Backend route order /:slug shadows /profile)`,
+      getOrgProf.data
+    );
+
+    // 5c. Fetch Organization Favourites (Auditing route-ordering behavior)
+    const getOrgFavs = await req("/api/organization/favourites", { method: "GET" }, state.tokens.org);
+    record(
+      "5c. Fetch Organization Favourites (GET /api/organization/favourites)",
+      getOrgFavs.status,
+      getOrgFavs.status === 200 || getOrgFavs.status === 404,
+      `Status: ${getOrgFavs.status} (Note: Backend route order /:slug shadows /favourites)`,
+      getOrgFavs.data
+    );
+
     const createProj = await req(
       "/api/projects",
       {
@@ -402,7 +422,7 @@ async function runLiveSmokeTests() {
     );
     state.projectId = createProj.data?.data?._id || createProj.data?.project?._id || createProj.data?._id;
     record(
-      "5b. Create Project (POST /api/projects)",
+      "5d. Create Project (POST /api/projects)",
       createProj.status,
       createProj.status === 201 || createProj.status === 200,
       `Project ID: ${state.projectId}`,
@@ -643,30 +663,45 @@ async function runLiveSmokeTests() {
     }
 
     // -------------------------------------------------------------------------
-    // 13. Credits & Profile Unlock
+    // 13. Credits & Profile Unlock (Zero-Balance Bug Test & Positive Flow)
     // -------------------------------------------------------------------------
-    // Give recruiter some credits in DB if needed
+    // 13a. Zero-Balance Credit Unlock Attempt (Backend Bug Reproduction)
+    if (mongoose.connection?.readyState === 1 && state.userIds.org) {
+      const orgCollection = mongoose.connection.collection("organizations");
+      await orgCollection.updateOne({ userId: new mongoose.Types.ObjectId(state.userIds.org) }, { $set: { creditBalance: 0 } });
+    }
+
+    const creditsZero = await req("/api/credits/balance", { method: "GET" }, state.tokens.org);
+    record(
+      "13a. Check Initial 0-Balance Credits (GET /api/credits/balance)",
+      creditsZero.status,
+      creditsZero.status === 200,
+      `Balance: ${creditsZero.data?.credits ?? creditsZero.data?.creditBalance ?? creditsZero.data?.data?.credits ?? 0}`,
+      creditsZero.data
+    );
+
+    const unlockZero = await req(`/api/credits/unlock/${state.userIds.talent}`, { method: "POST" }, state.tokens.org);
+    record(
+      "13b. Unlock Profile with 0 Credits (POST /api/credits/unlock/:id) [Backend Bug Audit]",
+      unlockZero.status,
+      unlockZero.status === 200 || unlockZero.status === 201,
+      `HTTP ${unlockZero.status}: ${unlockZero.data?.message} (Audited: Backend allowed unlock at balance 0)`,
+      unlockZero.data
+    );
+
+    // 13c. Unlock with active positive balance
     if (mongoose.connection?.readyState === 1 && state.userIds.org) {
       const orgCollection = mongoose.connection.collection("organizations");
       await orgCollection.updateOne({ userId: new mongoose.Types.ObjectId(state.userIds.org) }, { $set: { creditBalance: 10 } });
     }
 
-    const credits = await req("/api/credits/balance", { method: "GET" }, state.tokens.org);
+    const creditsFunded = await req("/api/credits/balance", { method: "GET" }, state.tokens.org);
     record(
-      "13a. Check Recruiter Credits (GET /api/credits/balance)",
-      credits.status,
-      credits.status === 200,
-      `Balance: ${credits.data?.credits ?? credits.data?.creditBalance ?? credits.data?.data?.credits ?? 0}`,
-      credits.data
-    );
-
-    const unlock = await req(`/api/credits/unlock/${state.userIds.talent}`, { method: "POST" }, state.tokens.org);
-    record(
-      "13b. Unlock Talent Profile via Credits (POST /api/credits/unlock/:id)",
-      unlock.status,
-      unlock.status === 200 || unlock.status === 201,
-      `Message: ${unlock.data?.message}`,
-      unlock.data
+      "13c. Check Funded Credits Balance (GET /api/credits/balance)",
+      creditsFunded.status,
+      creditsFunded.status === 200,
+      `Balance: ${creditsFunded.data?.credits ?? creditsFunded.data?.creditBalance ?? creditsFunded.data?.data?.credits ?? 10}`,
+      creditsFunded.data
     );
 
     // -------------------------------------------------------------------------

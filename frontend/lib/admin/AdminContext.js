@@ -72,11 +72,18 @@ export function AdminProvider({ children }) {
     let mounted = true;
     async function loadAdminData() {
       try {
-        const [talentsRes, orgsRes, mediaRes, notifRes] = await Promise.allSettled([
+        const [talentsRes, orgsRes, mediaRes, notifRes, oppsRes, cancRes, audRes, payRes, metricsRes, verRes, logsRes] = await Promise.allSettled([
           adminService.getAllUsers({ role: "talent" }),
           adminService.getAllUsers({ role: "organization" }),
           adminService.getPendingMedia(),
-          notificationService.getNotifications(),
+          notificationService.getMyNotifications(),
+          adminService.getPendingOpportunities(),
+          adminService.getCancellationRequests(),
+          adminService.getPendingAuditions(),
+          adminService.getPaymentTransactions(),
+          adminService.getDashboardMetrics(),
+          adminService.getPendingVerifications(),
+          adminService.getAuditLogs(),
         ]);
 
         if (mounted) {
@@ -91,6 +98,15 @@ export function AdminProvider({ children }) {
           }
           if (notifRes.status === "fulfilled" && Array.isArray(notifRes.value?.data)) {
             setNotifications(notifRes.value.data);
+          }
+          if (oppsRes.status === "fulfilled" && Array.isArray(oppsRes.value?.data)) {
+            setRequirementRequests(oppsRes.value.data);
+          }
+          if (payRes.status === "fulfilled" && Array.isArray(payRes.value?.data)) {
+            setPayments(payRes.value.data);
+          }
+          if (logsRes.status === "fulfilled" && Array.isArray(logsRes.value?.data)) {
+            setActivities(logsRes.value.data);
           }
         }
       } catch (err) {
@@ -121,10 +137,23 @@ export function AdminProvider({ children }) {
   };
 
   // ----------------------------------------------------
+  // ----------------------------------------------------
   // TALENT MANAGEMENT ACTIONS
   // ----------------------------------------------------
-  const approveTalent = (id) => {
-    // // TODO: API - PATCH /api/admin/talents/:id/approve
+  const approveTalent = async (id) => {
+    if (isRealMode("admin")) {
+      try {
+        await adminService.approveUser(id);
+      } catch (err) {
+        addToast({
+          type: "danger",
+          title: "Approval Failed",
+          message: err?.message || "Could not approve talent account.",
+        });
+        return;
+      }
+    }
+
     const target = talents.find((t) => t.id === id);
     setTalents((prev) =>
       prev.map((t) => (t.id === id ? { ...t, status: "Approved", statusReason: null } : t))
@@ -148,8 +177,20 @@ export function AdminProvider({ children }) {
     });
   };
 
-  const rejectTalent = (id, reason) => {
-    // // TODO: API - PATCH /api/admin/talents/:id/reject
+  const rejectTalent = async (id, reason) => {
+    if (isRealMode("admin")) {
+      try {
+        await adminService.rejectUser(id, { reason });
+      } catch (err) {
+        addToast({
+          type: "danger",
+          title: "Action Failed",
+          message: err?.message || "Could not reject talent registration.",
+        });
+        return;
+      }
+    }
+
     const target = talents.find((t) => t.id === id);
     setTalents((prev) =>
       prev.map((t) => (t.id === id ? { ...t, status: "Rejected", statusReason: reason } : t))
@@ -173,8 +214,20 @@ export function AdminProvider({ children }) {
     });
   };
 
-  const suspendTalent = (id, reason) => {
-    // // TODO: API - PATCH /api/admin/talents/:id/suspend
+  const suspendTalent = async (id, reason) => {
+    if (isRealMode("admin")) {
+      try {
+        await adminService.suspendUser(id, { reason });
+      } catch (err) {
+        addToast({
+          type: "danger",
+          title: "Action Failed",
+          message: err?.message || "Could not suspend talent account.",
+        });
+        return;
+      }
+    }
+
     const target = talents.find((t) => t.id === id);
     setTalents((prev) =>
       prev.map((t) => (t.id === id ? { ...t, status: "Suspended", statusReason: reason } : t))
@@ -187,8 +240,20 @@ export function AdminProvider({ children }) {
     });
   };
 
-  const reactivateTalent = (id) => {
-    // // TODO: API - PATCH /api/admin/talents/:id/reactivate
+  const reactivateTalent = async (id) => {
+    if (isRealMode("admin")) {
+      try {
+        await adminService.reactivateUser(id);
+      } catch (err) {
+        addToast({
+          type: "danger",
+          title: "Action Failed",
+          message: err?.message || "Could not reactivate talent account.",
+        });
+        return;
+      }
+    }
+
     const target = talents.find((t) => t.id === id);
     setTalents((prev) =>
       prev.map((t) => (t.id === id ? { ...t, status: "Approved", statusReason: null } : t))
@@ -204,8 +269,20 @@ export function AdminProvider({ children }) {
   // ----------------------------------------------------
   // RECRUITER MANAGEMENT ACTIONS
   // ----------------------------------------------------
-  const verifyRecruiter = (id) => {
-    // // TODO: API - PATCH /api/admin/recruiters/:id/verify
+  const verifyRecruiter = async (id) => {
+    if (isRealMode("admin")) {
+      try {
+        await adminService.approveUser(id);
+      } catch (err) {
+        addToast({
+          type: "danger",
+          title: "Verification Failed",
+          message: err?.message || "Could not verify recruiter account.",
+        });
+        return;
+      }
+    }
+
     const target = recruiters.find((r) => r.id === id);
     setRecruiters((prev) =>
       prev.map((r) => (r.id === id ? { ...r, status: "Verified", statusReason: null } : r))
@@ -229,8 +306,20 @@ export function AdminProvider({ children }) {
     });
   };
 
-  const rejectRecruiter = (id, reason) => {
-    // // TODO: API - PATCH /api/admin/recruiters/:id/reject
+  const rejectRecruiter = async (id, reason) => {
+    if (isRealMode("admin")) {
+      try {
+        await adminService.rejectUser(id, { reason });
+      } catch (err) {
+        addToast({
+          type: "danger",
+          title: "Action Failed",
+          message: err?.message || "Could not reject recruiter verification.",
+        });
+        return;
+      }
+    }
+
     const target = recruiters.find((r) => r.id === id);
     setRecruiters((prev) =>
       prev.map((r) => (r.id === id ? { ...r, status: "Rejected", statusReason: reason } : r))
@@ -243,8 +332,20 @@ export function AdminProvider({ children }) {
     });
   };
 
-  const suspendRecruiter = (id, reason) => {
-    // // TODO: API - PATCH /api/admin/recruiters/:id/suspend
+  const suspendRecruiter = async (id, reason) => {
+    if (isRealMode("admin")) {
+      try {
+        await adminService.suspendUser(id, { reason });
+      } catch (err) {
+        addToast({
+          type: "danger",
+          title: "Action Failed",
+          message: err?.message || "Could not suspend recruiter account.",
+        });
+        return;
+      }
+    }
+
     const target = recruiters.find((r) => r.id === id);
     setRecruiters((prev) =>
       prev.map((r) => (r.id === id ? { ...r, status: "Suspended", statusReason: reason } : r))
@@ -257,8 +358,20 @@ export function AdminProvider({ children }) {
     });
   };
 
-  const reactivateRecruiter = (id) => {
-    // // TODO: API - PATCH /api/admin/recruiters/:id/reactivate
+  const reactivateRecruiter = async (id) => {
+    if (isRealMode("admin")) {
+      try {
+        await adminService.reactivateUser(id);
+      } catch (err) {
+        addToast({
+          type: "danger",
+          title: "Action Failed",
+          message: err?.message || "Could not reactivate recruiter account.",
+        });
+        return;
+      }
+    }
+
     const target = recruiters.find((r) => r.id === id);
     setRecruiters((prev) =>
       prev.map((r) => (r.id === id ? { ...r, status: "Verified", statusReason: null } : r))
@@ -274,8 +387,20 @@ export function AdminProvider({ children }) {
   // ----------------------------------------------------
   // MEDIA MODERATION ACTIONS
   // ----------------------------------------------------
-  const approveMedia = (id) => {
-    // // TODO: API - PATCH /api/admin/media/:id/approve
+  const approveMedia = async (id) => {
+    if (isRealMode("admin")) {
+      try {
+        await adminService.reviewMediaItem(id, { action: "approve" });
+      } catch (err) {
+        addToast({
+          type: "danger",
+          title: "Media Approval Failed",
+          message: err?.message || "Could not approve media asset.",
+        });
+        return;
+      }
+    }
+
     const target = mediaQueue.find((m) => m.id === id);
     setMediaQueue((prev) =>
       prev.map((m) => (m.id === id ? { ...m, status: "Approved", statusReason: null } : m))
@@ -299,8 +424,20 @@ export function AdminProvider({ children }) {
     });
   };
 
-  const rejectMedia = (id, reason) => {
-    // // TODO: API - PATCH /api/admin/media/:id/reject
+  const rejectMedia = async (id, reason) => {
+    if (isRealMode("admin")) {
+      try {
+        await adminService.reviewMediaItem(id, { action: "reject", moderationNotes: reason });
+      } catch (err) {
+        addToast({
+          type: "danger",
+          title: "Media Rejection Failed",
+          message: err?.message || "Could not reject media asset.",
+        });
+        return;
+      }
+    }
+
     const target = mediaQueue.find((m) => m.id === id);
     setMediaQueue((prev) =>
       prev.map((m) => (m.id === id ? { ...m, status: "Rejected", statusReason: reason } : m))
@@ -383,25 +520,49 @@ export function AdminProvider({ children }) {
     });
   };
 
-  const markReadyToPublish = (reqId) => {
-    // // TODO: API - PATCH /api/admin/requirements/:id/ready
+  const markReadyToPublish = async (reqId) => {
+    if (isRealMode("admin")) {
+      try {
+        await adminService.approveOpportunity(reqId);
+      } catch (err) {
+        addToast({
+          type: "danger",
+          title: "Approval Failed",
+          message: err?.message || "Could not approve opportunity.",
+        });
+        return;
+      }
+    }
+
     const target = requirementRequests.find((r) => r.id === reqId);
     setRequirementRequests((prev) =>
-      prev.map((r) => (r.id === reqId ? { ...r, status: "Ready to Publish" } : r))
+      prev.map((r) => (r.id === reqId ? { ...r, status: "Published" } : r))
     );
 
     addToast({
       type: "success",
-      title: "Marked Ready to Publish",
-      message: `"${target?.projectTitle || target?.title}" is approved and ready to launch as a public casting call.`,
+      title: "Opportunity Approved & Published",
+      message: `"${target?.projectTitle || target?.title}" is approved and published live.`,
     });
   };
 
-  const declineRequirement = (reqId, reason) => {
-    // // TODO: API - PATCH /api/admin/requirements/:id/decline
+  const declineRequirement = async (reqId, reason) => {
+    if (isRealMode("admin")) {
+      try {
+        await adminService.rejectOpportunity(reqId, { rejectionReason: reason });
+      } catch (err) {
+        addToast({
+          type: "danger",
+          title: "Action Failed",
+          message: err?.message || "Could not reject opportunity.",
+        });
+        return;
+      }
+    }
+
     const target = requirementRequests.find((r) => r.id === reqId);
     setRequirementRequests((prev) =>
-      prev.map((r) => (r.id === reqId ? { ...r, status: "Declined", statusReason: reason, declineReason: reason } : r))
+      prev.map((r) => (r.id === reqId ? { ...r, status: "Rejected", statusReason: reason, declineReason: reason } : r))
     );
 
     addToast({

@@ -13,6 +13,7 @@ import { isRealMode } from "@/lib/api/config";
 import { talentService } from "@/lib/api/services/talentService";
 import { mediaService } from "@/lib/api/services/mediaService";
 import { notificationService } from "@/lib/api/services/notificationService";
+import { verificationService } from "@/lib/api/services/verificationService";
 
 const TalentContext = createContext(null);
 
@@ -42,11 +43,14 @@ export function TalentProvider({ children }) {
     let mounted = true;
     async function loadTalentData() {
       try {
-        const [profRes, mediaRes, appRes, notifRes] = await Promise.allSettled([
+        const [profRes, mediaRes, appRes, notifRes, audRes, verRes, compRes] = await Promise.allSettled([
           talentService.getMyProfile(),
           mediaService.getMyMedia(),
           talentService.getMyApplications(),
-          notificationService.getNotifications(),
+          notificationService.getMyNotifications(),
+          talentService.getMyAuditions(),
+          verificationService.getMyVerifications(),
+          talentService.getCompletionStatus(),
         ]);
 
         if (mounted) {
@@ -403,6 +407,88 @@ export function TalentProvider({ children }) {
 
   const { score: profileCompletionScore, checklist: profileChecklist } = calculateProfileCompletion();
 
+  // Reapplication & Verification Actions
+  const requestReapplication = async (applicationId, reason) => {
+    if (isRealMode("applications")) {
+      try {
+        const res = await talentService.requestReapplication(applicationId, { reason });
+        addToast({
+          type: "success",
+          title: "Reapplication Requested",
+          message: "Your reapplication request has been submitted for Admin review.",
+        });
+        return res;
+      } catch (err) {
+        addToast({
+          type: "danger",
+          title: "Reapplication Failed",
+          message: err?.message || "Could not submit reapplication request.",
+        });
+        throw err;
+      }
+    }
+
+    addToast({
+      type: "info",
+      title: "Reapplication Requested (Mock)",
+      message: "Request queued for Admin review.",
+    });
+  };
+
+  const submitIdentityVerification = async (payload) => {
+    if (isRealMode("verifications")) {
+      try {
+        const res = await verificationService.submitIdentityVerification(payload);
+        addToast({
+          type: "success",
+          title: "Identity Documents Submitted",
+          message: "Your government identity documents are queued for verification.",
+        });
+        return res;
+      } catch (err) {
+        addToast({
+          type: "danger",
+          title: "Verification Submission Failed",
+          message: err?.message || "Could not submit identity documents.",
+        });
+        throw err;
+      }
+    }
+
+    addToast({
+      type: "success",
+      title: "Identity Verified (Mock)",
+      message: "Documents uploaded.",
+    });
+  };
+
+  const submitProfessionalVerification = async (payload) => {
+    if (isRealMode("verifications")) {
+      try {
+        const res = await verificationService.submitProfessionalVerification(payload);
+        addToast({
+          type: "success",
+          title: "Professional Work Submitted",
+          message: "Your professional credits and links are under review.",
+        });
+        return res;
+      } catch (err) {
+        addToast({
+          type: "danger",
+          title: "Submission Failed",
+          message: err?.message || "Could not submit professional credits.",
+        });
+        throw err;
+      }
+    }
+
+    addToast({
+      type: "success",
+      title: "Credits Submitted (Mock)",
+      message: "Work submitted.",
+    });
+  };
+
   return (
     <TalentContext.Provider
       value={{
@@ -417,6 +503,9 @@ export function TalentProvider({ children }) {
         applications,
         applyToCall,
         withdrawApplication,
+        requestReapplication,
+        submitIdentityVerification,
+        submitProfessionalVerification,
         notifications,
         markAsRead,
         markAllAsRead,

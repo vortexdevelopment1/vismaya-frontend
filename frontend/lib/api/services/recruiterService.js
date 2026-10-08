@@ -638,4 +638,34 @@ export const recruiterService = {
     }
     return apiClient.delete(`/api/organization/favourites/${talentId}`);
   },
+
+  /**
+   * Update candidate application status (dispatch helper)
+   * @param {string} applicationId
+   * @param {string} newStatus
+   * @param {Object} payload
+   */
+  async updateCandidateStatus(applicationId, newStatus, payload = {}) {
+    const status = String(newStatus || "").toLowerCase().trim();
+    if (status.includes("under_review") || status.includes("review")) {
+      return this.markApplicationUnderReview(applicationId);
+    }
+    if (status.includes("shortlist")) {
+      return this.shortlistApplication(applicationId, payload);
+    }
+    if (status.includes("select") && !status.includes("not")) {
+      return this.selectApplication(applicationId, payload);
+    }
+    if (status.includes("not") || status.includes("reject")) {
+      return this.markNotSelected(applicationId, payload);
+    }
+    return this.shortlistApplication(applicationId, payload);
+  },
+
+  // Aliases for compatibility
+  async getMyOrganization() { return this.getOrganizationProfile(); },
+  async updateOrganization(payload) { return this.saveOrganizationProfile(payload); },
+  async getOpportunities() { return this.getMyOpportunities(); },
+  async requestCancellation(opportunityId, payload) { return this.requestOpportunityCancellation(opportunityId, payload); },
+  async deleteOpportunity(opportunityId, payload) { return this.requestOpportunityCancellation(opportunityId, payload); },
 };

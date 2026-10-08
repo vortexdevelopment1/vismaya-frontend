@@ -1,0 +1,1747 @@
+
+VISMAYA CREATIVE STUDIOS
+FINAL MASTER WEBSITE SPECIFICATION
+Product Architecture • Website Flow • Registration • Talent Database • Opportunities • Admin
+
+Version 2.0 | October 2026
+Implementation-ready handoff for UX/UI, frontend, backend, database and operations teams.
+
+1. Product Definition
+Vismaya Creative Studios is an IMDb-inspired professional identity, portfolio, discovery and opportunity platform for aspiring, emerging and experienced creative talent. Unlike IMDb, Vismaya does not rely on project pages as the primary database object. The central object is the talent profile: identity, portfolio, work experience, skills, verification and discoverability.
+CORE PRODUCT LOOP
+Create Identity  ->  Build Portfolio  ->  Become Discoverable  ->  Apply / Get Shortlisted  ->  Audition  ->  Get Selected  ->  Build Work Record
+Pillar
+Definition
+Professional Identity
+Every talent can build a persistent Vismaya identity, including aspiring talent with zero professional credits.
+Talent Database
+Searchable talent profiles organized by profession, department, designation, specialization and skills.
+Portfolio & Work Record
+Featured work, profession-specific media, work experience, training, skills and professional evidence.
+Industry Discovery
+Verified industry organizations can search, preview, spend profile-view credits, favourite and shortlist talent.
+Opportunity Workflow
+Vismaya-controlled opportunity submission, applications, screening, audition/self-tape and selection.
+Trust Layer
+Identity verification, professional verification, content moderation, opportunity approval and admin audit controls.
+
+Decision precedence: where earlier planning rounds conflict with later rounds, the latest explicit user decision in this project is the source of truth.
+
+2. Target Users & Career Stages
+User
+Purpose
+Aspiring Talent
+Build professional identity before first formal credit; portfolio-driven discovery.
+Emerging Talent
+Build visibility and work history while actively seeking opportunities.
+Experienced Professional
+Present established work record, portfolio, skills and verified professional identity.
+Industry Organization
+Discover talent, submit opportunities, manage applicants and selections.
+Casting Studio
+Run casting requirements, private shortlists and audition workflows through Vismaya.
+Talent Management Agency
+Maintain private roster relationships, find talent and submit opportunities.
+Vismaya Super-Admin
+Verification, moderation, opportunity control, payments, credits, analytics and audit.
+
+Career-stage labels: Aspiring Talent / Emerging Talent / Experienced Professional. Emerging has no strict credit threshold. Experienced is primarily determined by years of experience; Vismaya may correct inconsistent self-classification.
+3. Website Information Architecture
+Context
+Primary Navigation / Pages
+Logged out
+Home / About / Login / Register. Pricing appears on homepage and dedicated pricing page.
+Talent logged in
+Dashboard / Opportunities / Profile; basic talent search available to logged-in talent.
+Industry logged in
+Dashboard / Find Talent / Favourites / Submit Opportunity.
+Talent avatar
+View Profile / Edit Profile / Settings / Logout.
+Industry avatar
+Profile / Credits / Settings / Logout.
+Admin
+Sidebar: Dashboard / Users / Verification / Opportunities / Payments / Analytics / Audit / operational modules.
+Mobile
+Hamburger navigation; Talent quick items: Dashboard / Opportunities / Search / Profile; Industry: Dashboard / Search / Favourites / Account.
+
+Route
+Access / behavior
+/
+Public homepage.
+/about
+Public About page.
+/pricing
+Public pricing page; pricing also summarized on homepage.
+/talent
+Logged-in major profession directory.
+/talent/{category}
+Logged-in category search/results page.
+/talent/{name}
+Talent profile; Vismaya ID suffix only for duplicate names.
+/company/{name}
+Organization profile; logged-in access.
+/opportunities
+Logged-in opportunities route; logged-out visitor redirects to Login.
+/support
+FAQs + support guidance; support channels are email and WhatsApp.
+/terms
+Dedicated Terms page including community guidelines.
+/privacy
+Dedicated Privacy page.
+/success-stories
+Launch only after at least 50 published stories; before then stories live on homepage only.
+
+4. Homepage & Logged-Out Experience
+HOMEPAGE
+Hero  ->  How Vismaya Works  ->  6 Major Categories  ->  Locked Talent Preview  ->  Success Stories  ->  Pricing  ->  Footer
+Element
+Final specification
+Audience priority
+Talent seeking professional identity and opportunities.
+Headline
+India's Creative Talent Network.
+Primary CTAs
+Register as Talent / Register as Industry.
+Secondary CTA
+How Vismaya Works.
+Hero visual
+Rotating creative categories.
+Search teaser
+Search Talent - Login Required.
+Talent preview
+Name + photo visible; remaining profile information blurred/locked.
+Categories
+6 major categories + View All.
+Opportunities
+No logged-out opportunity access; static CTA only.
+Success Stories
+Carousel; photo + quote; newest automatically.
+Pricing
+₹999 Talent / ₹4,999 Industry displayed clearly.
+Visual density
+Very minimal.
+Footer
+About / Talent / Industry / Opportunities / Pricing / Support / Terms / Privacy / social links.
+
+5. Account Creation, Login & Recovery
+Function
+Rule
+Login
+Email + password, plus Google login.
+Mobile login
+Not a regular login method; used only for account recovery.
+Forgot password
+Recover via email or mobile.
+Registration entry
+Choose Talent or Industry first.
+Progress
+Numbered stepper + section names.
+Save later
+Allowed.
+Autosave
+Enabled; visible Save Draft also available.
+Exit
+Warn before leaving incomplete registration.
+Incomplete login
+Resume registration directly.
+Back navigation
+Allowed before payment; not allowed into pre-payment steps after payment.
+Optional sections
+Only designated optional sections can be skipped.
+Help
+Tooltip + helper text.
+Completion
+Clean professional success screen then guided dashboard checklist.
+
+6. Core Identity & Validation Rules
+Field
+Rule
+First Name
+Required.
+Middle Name
+Optional.
+Last Name
+Required.
+Professional / Stage Name
+Optional.
+Professional Headline
+Generated from professions; user can edit.
+Bio
+200-1,000 characters.
+Profile Photo
+Mandatory before payment.
+Mobile
+Indian mobile format initially; one account per mobile.
+Email
+One account per email.
+Age
+No minimum; under-18 triggers guardian flow.
+Duplicate account
+Block and direct user to account recovery.
+2FA
+Optional; user can enable/disable.
+Active sessions
+Automatic session management; no user session-management UI.
+
+7. Talent Registration - Screen-by-Screen
+TALENT REGISTRATION
+Choose Talent  ->  Create Account  ->  OTP  ->  Basic Identity + Photo  ->  Payment  ->  Professional Identity  ->  Location  ->  Skills  ->  Experience  ->  Portfolio  ->  Verification / Consent  ->  Success  ->  Dashboard
+Step
+Screen
+Core fields / behavior
+1
+Account Type
+Talent selected.
+2
+Account
+Email, mobile, password / Google; OTP verification.
+3
+Basic Identity
+First, optional middle, last name; optional professional name; DOB; gender; nationality; profile photo.
+4
+Payment
+₹999 one-time; coupon; applicable tax shown separately where required; gateway payment.
+5
+Build your Professional Identity
+Open Talent or Film & TV; profession hierarchy and career stage.
+6
+Location & Mobility
+Country, state, city, working cities, work-anywhere, travel, relocation, profession-specific remote mode.
+7
+Skills & Language
+Profession-specific skills + proficiency; languages; accents/dialects where relevant.
+8
+Work Experience
+Experience range, work entries, credits/evidence.
+9
+Portfolio
+Profession-specific media, category, visibility, ordering, featured nomination.
+10
+Verification & Consent
+Identity evidence where requested; Terms/Privacy/application consent; guardian flow if under 18.
+11
+Success
+Vismaya ID + professional completion state.
+12
+Dashboard
+Guided completion checklist.
+
+Search eligibility and application eligibility require successful payment AND at least 60% weighted profile completion.
+
+8. Common Talent Field Dictionary
+Section
+Field
+Control
+Visibility / rule
+Identity
+Legal name
+First / middle optional / last
+Legal identity; verified industry access where applicable.
+Identity
+Professional name
+Text
+Optional public display name.
+Identity
+Vismaya ID
+System-generated
+Visible immediately below name.
+Identity
+Profile photo
+Image
+Mandatory before payment; public identity.
+Identity
+DOB
+Date
+Private; age may be derived where professionally relevant.
+Identity
+Gender
+Male / Female / Other
+Stored.
+Identity
+Nationality
+Dropdown
+Stored.
+Profile
+Headline
+Generated + editable
+Professional identity.
+Profile
+Bio
+200-1,000 characters
+Public/login-visible profile section.
+Career
+Stage
+Aspiring / Emerging / Experienced
+Shown on search card and profile About.
+Career
+Experience range
+<1 / 1-3 / 3-5 / 5-10 / 10+
+Professional record.
+Availability
+Status
+Available Now / Occupied / Available From / Unavailable / Open to Opportunities
+Only shown in relevant application/industry context.
+Location
+Country
+India default + global options
+India launch focus.
+Location
+State
+India-specific list
+Dependent where relevant.
+Location
+City
+Search/autocomplete
+Base city; shown in About.
+Location
+Working cities
+Manual add, max 5
+Industry sees Base City + Works In.
+Mobility
+Open to work anywhere
+Checkbox
+Search/matching aid.
+Mobility
+Travel
+Yes/No
+Industry-visible.
+Mobility
+Relocation
+Yes/No
+Industry-visible.
+Remote
+Work mode
+Profession-specific
+Remote / on-site / hybrid only where relevant.
+Skills
+Skills
+Searchable predefined multi-select
+Each selected skill gets proficiency.
+Skills
+Skill level
+Beginner / Intermediate / Advanced / Expert
+Searchable professional metadata.
+Languages
+Languages
+Searchable multi-select
+Public displays language names only.
+Languages
+Proficiency
+Basic / Conversational / Professional / Fluent / Native
+Backend / professional matching.
+Accent
+Accent/dialect
+Predefined + custom
+Visible where professionally relevant.
+Training
+Institution
+Autocomplete + manual entry
+Institution + course; education itself not shown as separate section.
+Verification
+Identity evidence
+Govt ID + selfie/photo
+For Identity Verified badge.
+Verification
+Professional evidence
+Credits + portfolio evidence
+Professional Verified requires real professional work.
+
+9. Under-18 Guardian Flow
+UNDER 18
+Guardian Details  ->  Guardian Contact  ->  Relationship  ->  Consent  ->  Supporting Document  ->  Guardian-managed Controls
+Field
+Rule
+Guardian name
+Required.
+Guardian contact
+Required.
+Relationship
+Dropdown.
+Guardian consent
+Mandatory.
+Supporting documentation
+Required where Vismaya requests it.
+Profile controls
+Guardian-managed controls acknowledged.
+
+10. Talent Taxonomy & Dropdown Hierarchy
+10.1 Open Talent
+Flow: Open Talent -> Primary Profession -> up to 3 Secondary Professions -> Profession-specific specialization -> Skills -> Experience -> Portfolio.
+Open Talent professions
+Actors
+Models
+Photographers (non-wedding)
+Cinematographers
+Singers & Rappers
+Percussionists
+Dancers
+Choreographers
+Fight Masters
+Action Actors
+Make-Up Artists
+Art Directors
+Writers & Lyricists
+Music Director
+Composers
+Costume Designers
+Stylists
+Editors
+Production Managers
+
+10.2 Film & TV
+Flow: Film & TV -> Primary Department -> Designation -> Specialization. Secondary Film & TV departments can be added later, maximum 2.
+Department
+Designation options
+Direction & Writing
+Directors; Assistant Directors; Writers; Screenwriters; Dialogue Writers; Lyricists; Script Supervisors
+Casting
+Casting Directors; Casting Associates; Casting Assistants; Casting Coordinators
+Production
+Executive Producers; Line Producers; Production Managers; Production Coordinators; Production Assistants; Location Managers
+Cinematography & Camera
+Directors of Photography; Cinematographers; Camera Operators; 1st AC / Focus Pullers; 2nd AC; Camera Assistants; Drone Operators
+Editing & Post-Production
+Editors; Assistant Editors; Colorists; DI Professionals; Online Editors; Post-Production Supervisors; VFX Artists; VFX Supervisors; Motion Graphics Artists
+Art & Production Design
+Production Designers; Art Directors; Set Designers; Prop Designers; Prop Masters; Set Decorators; Graphic Artists
+Costume, Hair & Make-Up
+Costume Designers; Costume Stylists; Wardrobe Stylists; Make-Up Artists; Hair Stylists; Special Effects Make-Up Artists
+Sound & Music
+Music Directors; Music Producers; Composers; Singers; Rappers; Lyricists; Sound Designers; Sound Engineers; Foley Artists; Recording Engineers
+Choreography & Performance
+Choreographers; Dancers; Fight Masters; Stunt Coordinators; Stunt Performers; Action Directors; Action Actors
+Actors & On-Screen Talent
+Actors; Child Actors; Character Artists; Supporting Artists; Models; Voice Artists; Anchors / Presenters
+Photography
+Unit Photographers; Still Photographers; Behind-the-Scenes Photographers; Promotional Photographers
+
+11. Talent Profile - Final Information Hierarchy
+FULL PROFILE
+Header  ->  About  ->  Featured Work  ->  Portfolio  ->  Work Experience  ->  Skills  ->  Training / Awards  ->  Professional Information
+Element
+Specification
+Layout
+Wide professional layout.
+Header
+4:5 portrait photo left; name and details right.
+Name
+Full professional display name.
+Vismaya ID
+Immediately below name.
+Verification
+Identity / Professional badge beside name.
+Primary profession
+Visible; professional headline generated + editable.
+City
+Inside About.
+About
+Immediately after header; bio + career stage + languages + professional summary.
+Featured Work
+Horizontal 4-card section; user nominates, Vismaya decides.
+Portfolio
+Professional cards in rows; profession-specific category filtering; no full-screen enlargement.
+Work Experience
+Table: Year | Project | Role | Type.
+Skills
+Chips grouped by category.
+Training
+Institution + course.
+Awards
+Inside About / professional highlights.
+Physical attributes
+Collected where relevant but always private.
+Contact
+Always private.
+Remuneration
+Private; not displayed.
+Application history
+Never visible to others.
+
+12. Talent Search, Browse & Preview
+Area
+Talent account
+Verified Industry
+Access
+Basic talent browse/search.
+Advanced professional search.
+Search entry
+Logged-in main navigation / directory.
+Industry dashboard only.
+Primary search
+Name; category browse; basic city/profession/experience filters.
+Name plus dynamic professional filters.
+Layout
+Grid.
+Grid.
+Card
+4:5 photo; First name + last initial; Vismaya ID; primary profession; career stage; verification; trending badge if applicable.
+Same card, plus preview workflow.
+Card click
+Dedicated preview/profile route.
+Limited preview first; full profile consumes credit.
+Filters
+No advanced casting filters.
+Dynamic department/profession filters; city, availability, experience, skills, language, relevant physical criteria.
+Portfolio filtering
+No.
+No.
+Sorting
+Profile completeness default.
+Relevance + multiple sorting options.
+
+Talent directory cards do not show city. Industry free preview shows photo + name + profession + city + professional headline. Search results themselves do not consume credits.
+13. Trending Talent
+Rule
+Decision
+Inputs
+Profile views + shortlists + application/selection activity; higher profile completion helps.
+Verification advantage
+None.
+Paid boost
+Never.
+Window
+Rolling algorithm.
+Eligibility
+Aspiring talent is eligible.
+Placement
+Category pages only.
+Label
+Visible Trending badge.
+User sort
+Trending is not a selectable sort.
+Admin
+Can remove profiles from Trending.
+Explanation
+No user-facing explanation of why someone trends.
+
+14. Talent Analytics
+Metric
+Rule
+Profile view
+A full profile page load.
+Talent-to-talent view
+Counts.
+Industry preview
+Does not count.
+Industry full profile
+Counts in talent analytics and consumes industry credit.
+Own view
+Never counts.
+Admin view
+Never counts.
+Talent display
+Lifetime + last 30 days numeric totals.
+Viewer identity/source
+Not shown.
+Location/demographic analytics
+Not shown.
+Portfolio item analytics
+Not shown.
+
+15. Portfolio & Media System
+Feature
+Final rule
+Profile photo
+Mandatory before payment; face clearly visible.
+Photos
+Multiple; category mandatory.
+Video
+Direct upload; profession-specific video categories.
+Audio uploads
+Not supported.
+Documents
+Direct upload; categories: Writing Sample / Certification / Training / Professional Evidence / Other.
+External links
+Allowed where profession requires links; validated by Vismaya.
+Default visibility
+Industry-only.
+Visibility choices
+Public / Private / Industry-only where item-level control applies.
+Portfolio structure
+One media system with profession-specific categories.
+Ordering
+Drag-and-drop.
+Featured Work
+User nominates; Vismaya selects; maximum 4.
+Delete
+Immediate.
+Replace
+Delete + re-upload.
+Upload UX
+Per-file progress + retry.
+Duplicate images
+Exact duplicates blocked by system default.
+Rights
+User confirms rights/permission.
+Moderation
+Automated/AI moderation + admin escalation.
+
+Profile image policy
+Rule
+Face visibility
+Required.
+Group photo
+Not allowed as main profile image.
+AI-generated main image
+Not allowed.
+Sunglasses
+Warn but allow.
+Heavy retouching
+Warn; may be rejected if misleading.
+Watermarks
+Allowed.
+Mature content
+Profession-dependent age-gated moderation and restricted visibility; never normal-feed by default.
+
+16. Work Experience & Credits
+Field
+Specification
+Entry limit
+Maximum 50 work/credit entries.
+Core fields
+Project Name + Role + Type + Year.
+Project Type
+Common + profession-specific taxonomy.
+Common types
+Film / TV / OTT / Ad / Music Video / Theatre / Digital / Corporate / Live / Other.
+Project status
+Released / Completed / In Production / Upcoming.
+Evidence
+Optional unless verification requested.
+Ordering
+Newest first automatically.
+Professional verification
+Credits + portfolio evidence required.
+Aspiring zero-credit state
+Display “Building their professional journey” rather than a negative zero-credit label.
+Project pages
+No dedicated Vismaya project pages; work records live on talent profiles.
+
+17. Profession-Specific Registration: Actors
+Field / section
+Specification
+Acting Type
+Actor / Character Artist / Supporting Artist / Child Actor.
+Specialization
+Both medium and role type: Film/OTT/TV/Ads/Theatre/Digital/Music Videos + Lead/Supporting/Character/Cameo.
+Portrayable age
+Preset ranges.
+Height
+cm + ft/in.
+Complexion
+Dropdown.
+Eye colour
+Dropdown.
+Hair colour
+Dropdown.
+Hair type
+Straight / Wavy / Curly / Coily / Other.
+Body type
+Slim / Athletic / Average / Muscular / Plus-size / Other.
+Skills
+Vismaya-defined acting skill library.
+Mandatory media
+Profile photo + headshot + intro video.
+Headshot categories
+Close-up / Mid-shot / Full-length / Character Look.
+Intro video
+Max 90 seconds.
+Showreel
+Optional.
+Audition reel
+Optional category.
+Representation
+Independent / Agency / Manager / Exclusive / Non-exclusive.
+Representation name
+Optional text.
+Casting preferences
+Medium + genre.
+Sensitive preferences
+Private; revealed only in relevant application workflow.
+Training
+Free text.
+Physical visibility
+Always private.
+
+18. Profession-Specific Registration: Models
+Field / section
+Specification
+Model types
+1 primary + max 3 secondary.
+Type library
+Fashion/Editorial; Runway/Ramp; Commercial/Advertising; Print; Catalogue/E-commerce; Fitness; Lifestyle; Beauty; Jewellery; Bridal; Swimwear; Lingerie; Ethnic/Traditional; Hand; Foot; Hair; Promotional/Event; Influencer/Content; Other.
+Height
+Mandatory.
+Measurements
+Mandatory; dynamic by gender; both inch and cm systems.
+Shoe size
+Collected.
+Apparel size
+Not collected.
+Eye/Hair/Complexion
+Collected.
+Tattoos
+Yes/No + details.
+Piercings
+Yes/No + details.
+Minimum images
+3: Headshot + Mid-shot + Full-length.
+Ramp walk
+Optional.
+Intro video
+Optional.
+Portfolio categories
+Fashion / Commercial / Beauty / Catalogue / Fitness / Lifestyle / Jewellery / Other.
+Work preferences
+Free text.
+Sensitive work types
+Private preferences collected.
+Agency field
+No model-specific agency field.
+Credits
+Project / Brand / Year.
+Physical visibility
+Always private.
+
+19. Profession-Specific Registration: Photography & Cinematography
+19.1 Photographers
+Field
+Specification
+Specialization
+1 primary + max 3 secondary.
+Specialization library
+Fashion / Advertising / Editorial / Portrait / Product / Food / Architecture / Documentary / Entertainment / BTS / Unit Still / Sports / Corporate / Events excluding Wedding / Other.
+Work identity
+Individual Freelancer / Studio / Team-Collective / Freelancer + Studio.
+Equipment
+Ownership/access status only; no camera/lens inventory.
+Skills
+Master skill library + custom.
+Software
+Photoshop / Lightroom / Capture One / Other + proficiency.
+Services
+Multi-select based on specialization.
+Minimum portfolio
+8 images.
+Portfolio tags
+Mandatory category tagging.
+
+19.2 Cinematographers
+Field
+Specification
+Designation
+Primary + secondary.
+Specialization
+1 primary + max 3 secondary; Feature / Short / OTT / TV / Commercial / Music Video / Documentary / Fashion / Corporate / Digital / Live / Sports / Action / High-Speed / Underwater / Aerial / Virtual Production.
+Visual style
+Primary + secondary.
+Camera systems
+ARRI / RED / Sony / Blackmagic / Canon / Panasonic / Film / Other; multi-select.
+Lighting
+Predefined multi-select.
+Movement/rigging
+Steadicam / Gimbal / Dolly / Handheld / Drone / Crane / Other.
+Equipment access
+Own / Rent / Production-provided / multiple.
+Portfolio minimum
+Showreel OR project links.
+Showreel duration
+Max 3 minutes.
+Project scale
+Primary + secondary.
+
+20. Profession-Specific Registration: Direction & Writing
+Field
+Specification
+Hierarchy
+Department -> Designation directly; no extra Director/Writer branch screen.
+Director specialization
+1 primary + max 3 secondary.
+Writer specialization
+1 primary + max 3 secondary.
+Genre
+1 primary + multiple secondary.
+Director portfolio
+Showreel + project links.
+Writer portfolio
+Documents + external links.
+Script visibility
+Industry-only.
+Aspiring writer minimum
+1 writing sample.
+Awards/festivals
+Structured field.
+Pitch/deck
+Allowed as private/industry-only document.
+Languages
+Language + proficiency; dialect/accent where relevant.
+
+21. Profession-Specific Registration: Production & Post
+21.1 Production
+Field
+Specification
+Capabilities
+Multi-select master list: Budget, Scheduling, Crew, Vendors, Locations, Permits, Logistics, Travel, Equipment Coordination, Production Planning, Call Sheets, Shooting Schedules, Cost Control, Documentation, Authority Coordination, International Production.
+Scale
+Primary + secondary: Micro/Low Budget, Independent, Mid-Budget, Large Scale, Studio/Commercial, International, Multi-location.
+Team experience
+Select all applicable team sizes.
+Location expertise
+Searchable city/region multi-select.
+Credits
+Common work experience structure.
+
+21.2 Editing & Post-Production
+Field
+Specification
+Designation
+Primary + optional secondary.
+Technical skills
+Predefined + custom.
+Skills library
+Offline/Online Editing; Color Correction/Grading; Conforming; DI; Compositing; Rotoscoping; Motion Graphics; Titles; Green Screen; Tracking; Match Moving; Clean-up; VFX; Basic Sound; Subtitling; Other.
+Software
+Premiere / Resolve / Final Cut / Avid / After Effects / Photoshop / Illustrator / Nuke / Fusion / Cinema 4D / Blender / Maya / Houdini / Other + proficiency.
+Showreel
+Optional.
+Before/after comparisons
+Industry-only.
+Certifications
+Optional.
+
+22. Profession-Specific Registration: Art, Costume, Hair & Make-Up
+Field
+Specification
+Art specialization
+1 primary + max 3 secondary.
+Visual style
+Primary + secondary.
+Art software
+Software + proficiency.
+Art portfolio minimum
+5 work samples.
+Costume/Make-Up services
+Dynamic multi-select by designation.
+SFX/Prosthetics
+Dedicated specialization + portfolio category.
+Team-size experience
+Multi-select.
+Before/after makeup images
+Allowed.
+Costume portfolio
+Project-based cards + image portfolio.
+Credits
+Common Work Experience fields.
+
+23. Profession-Specific Registration: Sound & Music
+Field
+Specification
+Designation
+Music Director / Music Producer / Composer / Singer / Rapper / Lyricist / Sound Designer / Sound Engineer / Foley Artist / Recording Engineer.
+Specialization
+1 primary + max 3 secondary.
+Skill categories
+Music direction, composition, arrangement, background score, song/beat production, orchestration, programming, vocal direction; sound design, production sound, dialogue editing, Foley, ADR, dubbing, mixing/mastering, recording, voice-over.
+Genres
+Multi-select: Bollywood/Indian Film, Pop, Rock, Hip-Hop/Rap, Classical, Semi-Classical, Folk, Fusion, Electronic, Ambient, Experimental, Devotional, Regional, World, Orchestral, Other.
+Software
+Pro Tools / Logic / Ableton / Cubase / FL Studio / Nuendo / Studio One / Reason / Kontakt / Other + proficiency.
+Instruments
+Instrument + proficiency where relevant.
+Vocals
+Relevant vocal capabilities.
+Singer/Rapper portfolio minimum
+Performance video OR validated external performance link.
+Composer/Music Director minimum
+At least 2 work samples or project links.
+Sound professional portfolio
+Showreel/project links optional but strongly recommended.
+Rights
+Mandatory rights declaration: Original / Commissioned / Licensed / Cover / Client-owned / Collaborative.
+Audio upload
+No direct audio upload; use video or validated link.
+
+24. Profession-Specific Registration: Dance, Choreography & Action
+Field
+Specification
+Designation
+Choreographer / Dancer / Fight Master / Stunt Coordinator / Stunt Performer / Action Director / Action Actor.
+Specialization
+1 primary + max 3 secondary.
+Dance styles
+Bollywood / Contemporary / Hip-Hop / Jazz / Ballet / Classical Indian / Semi-Classical / Folk / Urban / Freestyle / Latin / Ballroom / Commercial / K-Pop / Experimental / Other.
+Action disciplines
+Martial Arts / Boxing / Kickboxing / MMA / Wrestling / Sword / Weapon Choreography / Hand-to-Hand / Stunt Fighting / Wire Work / Falls / Vehicle / Fire / Water / Aerial / Other.
+Performance skills
+Profession-specific searchable skills.
+Physical/performance data
+Height, age, body type, fitness, dance level, flexibility, acrobatics, martial-arts level; always private.
+Safety/certification
+Martial Arts / First Aid / Stunt Safety / Fire / Water / Diving / Rope-Wire / Vehicle / other; optional unless claimed for verified credential.
+Dancer/Choreographer portfolio
+Performance video required.
+Action portfolio
+Stunt/action showreel OR relevant project links.
+Credits
+Common work-experience structure.
+
+25. Profession-Specific Registration: Voice, Anchor & Presenter
+Field
+Specification
+Designation
+Voice Artist / Anchor / Presenter / relevant supporting talent.
+Specialization
+1 primary + up to 3 secondary where applicable.
+Languages
+Language + backend proficiency.
+Accent/dialect
+Predefined + custom.
+Voice profile
+Voice type, voice age range, vocal range, tone, delivery style, character voices, singing ability, dubbing ability.
+Presentation skills
+Public speaking, teleprompter, interviewing, live hosting, event hosting, news presentation, product presentation, improvisation.
+Physical profile
+None.
+Portfolio
+Introduction / showreel / audition or voice reel / project links.
+Media
+Video direct upload; no audio upload.
+Credits
+Common work experience.
+Child talent
+Guardian flow applies.
+
+26. Industry Organization Registration
+INDUSTRY REGISTRATION
+Choose Industry  ->  Account + OTP  ->  Basic Organization Identity  ->  Payment ₹4,999  ->  Organization Profile  ->  Verification Documents  ->  Success  ->  Dashboard + 100 Credits
+Section
+Fields / rules
+Organization
+Organization Name; Legal Business Name private; Public Brand Name currently same as legal name.
+Responsible person
+Name + designation.
+Location
+Country / State / City + multiple offices.
+Website
+Website URL only.
+Description
+Mandatory detailed company description.
+Experience
+Years + projects + major credits.
+Portfolio
+Projects + links; case studies where relevant.
+Team
+Team size.
+Services
+Dynamic by organization type.
+Verification
+Email/mobile + business/identity + professional/industry.
+Documents
+Business registration + GST/tax + professional proof + other evidence.
+Contact
+No public direct contact; structured Vismaya workflow.
+Account structure
+One organization = one account.
+
+27. Casting Studios & Talent Management Agencies
+27.1 Casting
+Area
+Rule
+Roles
+Casting Director / Associate / Assistant / Coordinator.
+Specializations
+Multi-select; no primary requirement.
+Talent categories cast
+Multi-select.
+Casting materials
+Briefs, character breakdowns, audition briefs, decks, shortlists, case studies; restricted.
+Requirements
+Submitted to Vismaya -> reviewed -> published.
+Shortlists
+Private project-specific.
+Audition
+Vismaya-controlled invitation/self-tape workflow.
+General talent saving
+No unrestricted public talent library beyond permitted favourites/project shortlists.
+Child casting
+Enhanced guardian/safety requirements.
+Credits
+Verified credits may appear publicly on organization profile.
+
+27.2 Talent Management Agency
+Area
+Rule
+Agency type
+Dynamic agency-type field.
+Talent categories
+Multi-select.
+Representation model
+One selected representation type; exclusive status recorded where applicable.
+Services
+Dynamic agency service taxonomy.
+Roster
+Private.
+Talent association
+Handled through Vismaya; no unilateral public claim.
+Opportunities
+Submitted to Vismaya for review.
+Shortlists
+Private project-specific.
+Communication
+No direct open chat.
+Disputes
+Handled by Vismaya.
+Credits/case studies
+Verified agency credits may appear on organization profile.
+
+28. Pricing, Checkout & Transactions
+Item
+Final rule
+Talent registration
+₹999 one-time.
+Industry registration
+₹4,999 one-time.
+Industry included views
+100 full talent-profile views immediately.
+Additional single view
+₹100.
+Fixed bundle
+25 additional profiles for ₹2,000.
+Coupon
+Allowed; admin controls validity/eligibility/usage.
+Free tier
+None.
+Subscriptions
+None.
+Renewal
+No automatic renewal.
+Refunds
+No refunds.
+Currency
+INR only.
+Payment methods
+Gateway-supported UPI, cards, net banking and wallets.
+Activation
+Successful payment activates paid registration state.
+Failed payment
+Pending; retry allowed.
+Receipt
+Automatic digital receipt/invoice.
+GST/tax
+Applicable taxes shown separately where required; exact inclusive/exclusive commercial wording remains a final finance/legal setup decision.
+Payment history
+No user-facing payment history.
+Confirmation
+Email.
+Storage
+Vismaya does not store card details.
+Accounting
+Vismaya retains full transaction records.
+
+29. Industry Talent Profile-View Credit System
+Rule
+Specification
+Included credits
+100; never expire while account active.
+Purchased credits
+Never expire while account active.
+Charged event
+Opening full talent profile.
+Repeat window
+Same organization can reopen same talent for 7 days without another credit.
+Search result
+Free.
+Limited preview
+Free.
+Balance
+Clearly displayed.
+View history
+Organization can see previously viewed talent.
+Analytics
+Organization primarily sees remaining credits; opportunity operational counts are separate.
+Transfer
+No organization-to-organization transfer.
+Closure
+Unused credits forfeited.
+Suspension
+View access suspended.
+Talent privacy
+Talent cannot see which organization viewed them.
+Admin
+Super-admin can adjust balances.
+Abuse
+Detect unusual/high-volume viewing patterns.
+Low-balance warning
+Confirmation/warning appears when fewer than 10 credits remain; otherwise full-profile credit consumption can proceed without extra confirmation.
+Zero balance
+Buy More Views CTA appears at zero.
+
+30. Favourites, Project Shortlists & Selection
+Feature
+Rule
+Actions
+Full profile -> Favourite or project shortlist.
+Favourites
+Separate private favourites list.
+Project shortlists
+Unlimited private project-specific shortlists.
+Visibility
+Organization only; admin can oversee where necessary.
+Shortlist notification
+No notification merely for shortlist placement.
+Notes
+No private notes.
+Tags
+Vismaya-defined tags only.
+Compare
+No side-by-side comparison feature.
+Applicant relationship
+Applicants can automatically appear in relevant project shortlist.
+Selection
+Only from applicants.
+Multiple selection
+Allowed.
+Confirmation
+Organization confirms selection through Vismaya.
+Talent notification
+In-app when selected.
+Expiry
+Shortlist expires when opportunity closes.
+Archive
+No archive; deleted after closure.
+Reuse
+Same talent can be shortlisted for multiple projects.
+Permanent library
+No organization-wide permanent library beyond favourites + project shortlists.
+
+31. Project & Opportunity Workflow
+OPPORTUNITY
+Create Project  ->  Submit Opportunity  ->  Vismaya Review  ->  Publish  ->  Applications  ->  Screening  ->  Shortlist  ->  Audition / Interview  ->  Selection  ->  Completion
+Field / behavior
+Final rule
+Creator
+Verified industry organization submits to Vismaya.
+Project association
+Every opportunity belongs to a project.
+Approval
+Every opportunity requires Vismaya approval.
+Public/logged-in identity
+Organization name/logo hidden on opportunity detail.
+Opportunity header
+Title only.
+Status
+Open / Closing Soon / Closed.
+Deadline
+Date only.
+Role title
+Mandatory.
+Eligibility
+Profession + experience + language + city + skills.
+Match
+Show match status and highlight missing requirements.
+Project details
+Minimal.
+Remuneration
+Hidden from opportunity detail.
+Description
+Short brief + expand.
+CTA
+Apply Now.
+Eligibility mismatch
+Warn but allow application.
+Profile completion
+Must meet minimum 60% before applying.
+Applicant count
+Approximate only, e.g. 50+.
+Positions
+Show if organization entered number.
+Save
+No save/bookmark.
+Share
+No sharing.
+Report
+Only applicants can report.
+Deadline behavior
+Mandatory; automatic closure.
+Cancellation
+Organization requests through Vismaya.
+Completion
+Organization can mark completed through Vismaya.
+
+32. Application Workflow
+APPLICATION
+Apply Now  ->  Eligibility / Completion Check  ->  Multi-step Form  ->  Custom Questions  ->  Optional Cover Note  ->  Per-application Consent  ->  Submit  ->  Applied
+Function
+Rule
+Form
+Multi-step.
+Initial materials
+Profile only.
+Cover note
+Optional.
+Custom questions
+Allowed.
+Consent
+Confirm each application.
+Confirmation
+Simple confirmation.
+Success
+Application Submitted.
+Editing
+Cannot edit after submit.
+Withdrawal
+Allowed anytime; reason + confirmation required.
+Reapply
+Requires admin approval.
+Main statuses
+Applied -> Under Review -> Shortlisted -> Selected / Not Selected.
+Organization access
+Only applicants to its own opportunities.
+Communication
+Structured workflow only; no direct chat.
+History
+Talent sees complete application history.
+
+33. Audition / Self-Tape Workflow
+AUDITION
+Organization Requests via Vismaya  ->  Email + In-app Invite  ->  Brief + Script  ->  Talent Submits / Attends  ->  Organization Reviews  ->  Application Continues
+Feature
+Rule
+Requester
+Organization through Vismaya.
+Notification
+Email + in-app.
+Types
+Self-tape / In-person / Video Interview.
+Brief
+Role + scene + instructions + deadline + format.
+Script
+Organization can attach; Vismaya can manage/upload when needed.
+Self-tape
+Direct video upload.
+Deadline
+Same as application deadline under current rule.
+Resubmission
+One submission only.
+Audition status
+No separate status ladder.
+Feedback
+Optional organization feedback visible to talent.
+
+34. Talent Dashboard
+Module
+Behavior
+Welcome
+Profile completion/profile strength plus opportunity-oriented overview.
+Profile Strength
+Percentage only.
+Primary CTA
+Complete Profile until 100%; then View Opportunities.
+Verification
+Identity + Professional verification progress.
+Profile views
+Lifetime + last 30 days.
+Viewer identity
+Never reveal organization names.
+Applications
+Applied / Under Review / Shortlisted / Selected counts/status.
+Shortlist awareness
+Notification only.
+Opportunity section
+Dashboard shows applied opportunities; no personalized recommendation feed.
+Portfolio reminder
+Actionable completion suggestions.
+Settings
+Profile / Security / Account.
+
+35. Industry Dashboard
+Module
+Behavior
+Top metrics
+Remaining profile views + Active Projects + Applicants.
+Primary CTAs
+Find Talent + Submit Opportunity.
+Recently viewed
+Separate page only.
+Favourites
+Small dashboard preview.
+Active projects
+No dedicated dashboard project-card section.
+Opportunities
+No full management list; Vismaya controls opportunity management.
+Applicant summary
+Total applicants; analytics also track applications/shortlists/selections.
+Buy views
+CTA only when balance reaches zero.
+Verification
+Show widget only while pending.
+Analytics
+Applications + shortlists + selections + active project/opportunity counts.
+
+36. Organization Profile
+Element
+Rule
+URL
+/company/{name}
+Access
+Logged-in users.
+Public/logged-in content
+Name + description + portfolio + verified credits/case studies where applicable + verification badge.
+Legal/business verification docs
+Private.
+Direct contact
+Not exposed.
+Opportunities
+Managed through Vismaya rather than direct contact.
+
+37. Notifications & Communication
+Event
+Channel / behavior
+Relevant opportunity
+In-app may be triggered.
+Application status
+In-app.
+Selection
+In-app.
+Not Selected
+In-app.
+Audition invite
+Email + in-app.
+Security
+Email + in-app.
+Suspension
+Immediate status/reason notification where applicable.
+Profile correction
+Notification.
+Opportunity submission/review
+Organization confirmation/status.
+Opportunity approval/rejection
+Organization notified; rejection includes reason.
+Verification
+Dashboard status; rejection directs to support under latest rule.
+Marketing
+None.
+Direct messages
+None.
+User preferences
+Email toggle only; core in-app system communication remains platform-controlled.
+
+38. Profile Editing, Settings & Account Controls
+Function
+Rule
+Edit flow
+Edit Profile -> edit -> submit changes.
+Pending critical edits
+Old live profile remains.
+Rejected edit
+Original remains; correction request.
+Minor edits
+Auto-publish.
+Profile photo
+Immediate.
+Profession change
+Not allowed.
+Primary profession
+Allowed with admin approval.
+Open Talent <-> Film & TV
+Admin-only migration.
+Email change
+Allowed with re-verification.
+Mobile change
+Not allowed.
+Password
+Current password OR OTP.
+Privacy
+No broad profile privacy controls; media-item visibility only.
+Notification settings
+Email toggle only.
+Consent history
+Not user-visible.
+Delete profile
+Request from settings; OTP + confirmation.
+Temporary deactivation
+Not supported.
+
+39. Visibility & Privacy Matrix
+Profile element
+Logged-in Talent/User
+Verified Industry
+Owner / Admin
+Name / Photo / Profession
+Visible
+Visible
+Visible
+Vismaya ID
+Visible
+Visible
+Visible
+Bio / About
+Visible
+Visible
+Visible
+Career stage
+Visible
+Visible
+Visible
+Featured Work
+Visible
+Visible
+Visible
+Professional links
+Visible
+Visible
+Visible
+Identity / Professional badge
+Visible
+Visible
+Visible
+Base city
+About section
+Visible
+Visible
+Work experience / credits
+Restricted/basic per profile design
+Visible
+Visible
+Availability
+Hidden except workflow
+Relevant workflow only
+Visible
+Full portfolio
+Restricted by item/login visibility
+Industry-only by default
+Visible
+Training
+Professional profile context
+Visible
+Visible
+Contact
+Hidden
+Hidden
+Owner/Admin
+Remuneration
+Hidden
+Hidden
+Private
+Physical attributes
+Hidden
+Hidden
+Private
+Application history
+Hidden
+Hidden
+Owner/Admin
+Analytics
+Hidden
+Hidden
+Owner only
+
+40. Verification, Moderation & Trust
+Area
+Rule
+Registration
+Automatic after successful payment / completion flow.
+Profile publishing
+Automatic after minimum completion.
+Identity Verified
+Government identity document + selfie/photo verification.
+Professional Verified
+Requires professional credits + portfolio evidence.
+Aspiring talent
+Cannot receive Professional Verified without professional credits.
+Badge expiry
+No routine expiry; reverify if relevant information changes or issue occurs.
+Fake credentials
+Immediate permanent ban.
+Fake credits
+Remove/mark unverified and investigate.
+Copyright dispute
+Temporarily hide disputed media.
+Reported account
+May be temporarily restricted.
+Impersonation
+General fake-profile reporting reason; ownership dispute resolved by Vismaya identity verification.
+Appeal
+No formal appeal workflow.
+Admin authority
+One super-admin; complete platform authority; critical actions logged.
+
+41. Vismaya-Created Informational Profiles
+Rule
+Specification
+Creation
+Vismaya may create informational profiles for selected established/notable professionals only.
+Claim
+Identity verification -> claim.
+Same-name handling
+Separate Vismaya IDs; profession may visually distinguish people.
+Former names
+Do not publicly display “previously known as”.
+Account merge
+No merge feature.
+Stage-name edits
+User can update professional/stage name freely once profile is owned, subject to platform integrity controls.
+
+42. Success Stories
+Rule
+Specification
+Eligibility
+Primarily talent selected through Vismaya opportunities; Vismaya editorially selects stories.
+Submission
+Talent submits; admin approves.
+Format
+Photo + quote.
+Consent
+Registration Terms cover website publication; separate consent required for external/social sharing.
+Homepage
+Carousel; newest automatically.
+Dedicated page
+Launch after 50 published stories.
+Organization/project naming
+Allowed with permission.
+External sharing
+Allowed with consent.
+
+43. Support & Edge Cases
+Scenario
+Behavior
+Support channels
+Email + WhatsApp.
+Support topics
+Account / Payment / Verification / Opportunity / Profile / Safety / Other.
+Tracking
+Email response only.
+Payment failed
+Retry Payment + Contact Support.
+Verification rejected
+Contact Support.
+Suspended profile URL
+Generic unavailable message.
+Deleted profile URL
+Profile no longer available.
+Closed opportunity
+Remains visible as Closed to applicants.
+Banned account
+Login blocked.
+System errors
+Standard system error screens.
+
+44. Admin Dashboard & Operations
+Module
+Capabilities
+Admin Home
+KPI cards + queues + alerts.
+Global Search
+Users + organizations + opportunities + transactions + Vismaya IDs.
+Users
+Search/manage/restrict/suspend; admin profile editing.
+User detail
+Tabs: Profile / Verification / Activity / Payments / Audit.
+Verification
+Department-specific queues; Approve / Reject / Request More Information.
+Credit verification
+Part of profile verification rather than separate queue.
+Opportunities
+Dedicated queue; simple form review; request corrections/edit/approve.
+Applicants
+Oversee statuses/workflow.
+Shortlists
+View project shortlists when necessary.
+Content
+Hide/remove violations; moderation escalation.
+Payments
+Transaction list + filters + invoice status.
+Profile-view credits
+Balance + history + manual adjustment.
+Analytics
+Dashboard charts: registrations, active accounts, profiles, verification, category distribution, opportunity views/applications/shortlists/selections.
+Exports
+Operational report export.
+Audit
+Important/critical admin actions recorded.
+Admin roles
+One super-admin only.
+
+45. Talent Category Directory & Browse Logic
+Feature
+Rule
+/talent landing
+Major profession cards only.
+Card
+Icon + category name.
+Category page
+Search/results immediately.
+Talent-user filters
+No advanced filters; basic search supports name/city/profession/experience.
+Talent count
+Hidden.
+Loading
+Infinite scroll + Load More fallback.
+Default sorting
+Profile completeness.
+Empty state
+Suggest related profiles/categories.
+Trending
+Algorithmic section/label on category pages only.
+
+46. UI / Visual Design System Direction
+Area
+Direction
+Positioning
+Premium creative-industry platform + youthful aspirational energy.
+Visual direction
+Premium light minimal.
+Background
+Off-white / light grey.
+Accent
+Gold.
+Typography
+Editorial serif + modern sans-serif.
+Cards
+Thin borders.
+Corners
+Slightly rounded.
+Photography
+Natural user-uploaded imagery; no forced aesthetic standardization.
+Icons
+Minimal line icons.
+Motion
+Minimal micro-interactions.
+Avoid
+Do not look like LinkedIn, Instagram, a conventional job portal, a gossip site or a dark IMDb clone.
+
+47. Recommended Core Data Model
+Entity
+Purpose / key relationships
+User Account
+Authentication, email/mobile, security, account type, consents.
+Talent Profile
+Universal Vismaya ID, names, bio, career stage, primary category/profession, profile strength.
+Talent Profession
+Primary/secondary Open Talent professions; Film & TV departments/designations/specializations.
+Skill
+Master taxonomy; profile skill + proficiency.
+Language
+Language + proficiency + accents.
+Location
+Base location, working cities, travel/relocation.
+Work Experience
+Project/credit records; no separate project-page requirement.
+Portfolio Item
+Media type, profession category, visibility, moderation state, ordering, featured nomination/state.
+Verification
+Identity and professional verification evidence/status.
+Organization
+Industry account, services, portfolio, verification.
+Profile View Credit Ledger
+Included/purchased/consumed/adjusted credit transactions.
+Talent View Event
+Analytics view events; excludes owner/admin; tracks charged/free preview rules separately.
+Favourite
+Organization -> talent.
+Project Shortlist
+Organization project/opportunity -> talent/applicant.
+Opportunity
+Project association, role, eligibility, deadline, status, Vismaya review state.
+Application
+Talent -> opportunity, questions, cover note, consent, status, withdrawal.
+Audition
+Application-linked brief, type, script, self-tape/media, feedback.
+Payment Transaction
+Registration/bundle/single-view payment, status, receipt/invoice.
+Notification
+In-app/email system events.
+Admin Audit Log
+Critical admin action history.
+
+48. State Machines
+Object
+States
+Registration
+Started -> Identity Complete -> Payment Pending -> Paid -> Professional Setup -> Complete.
+Payment
+Successful / Failed.
+Profile
+Draft/In Progress -> Searchable once paid + >=60%; live profile with pending critical revision where relevant.
+Verification
+Pending -> Verified / Rejected / Suspended.
+Opportunity
+Submitted -> Under Vismaya Review -> Approved/Published -> Closed / Cancelled / Completed.
+Application
+Applied -> Under Review -> Shortlisted -> Selected / Not Selected; Withdrawn is permitted with reason.
+Account
+Active -> Restricted / Suspended / Banned / Deletion Requested / Deleted.
+Media moderation
+Uploaded -> Automated Check -> Live / Restricted / Admin Review / Removed.
+
+49. Critical Business Rules for Development
+One login and one universal Vismaya identity per user.
+A Talent account has one active top-level category: Open Talent OR Film & TV. Migration between them is admin-only.
+Open Talent allows one primary profession plus up to 3 secondary professions.
+Film & TV uses Department -> Designation -> Specialization; up to 2 secondary departments can be added later.
+Talent becomes searchable only after successful payment and >=60% weighted profile completion.
+Talent can apply only after the same minimum completion threshold.
+No direct messaging/chat between talent and industry anywhere in the product.
+Contact information, remuneration and physical attributes must never be exposed through ordinary profile APIs.
+Every opportunity requires Vismaya review before publication.
+Every full industry profile view must be transactionally charged against the organization credit ledger unless covered by the 7-day repeat-view window.
+Search results and limited preview never consume industry credits.
+All sensitive or critical admin/user changes require audit logging where applicable.
+Portfolio uploads should pass technical validation and automated moderation before escalation to admin where required.
+Profession taxonomies should be configuration-driven, not hard-coded into frontend logic.
+Exact professional URLs should resolve duplicates using Vismaya ID only when necessary.
+50. End-to-End Flowcharts
+LOGGED-OUT VISITOR
+Home  ->  About / Pricing  ->  Register or Login
+TALENT
+Register  ->  ₹999  ->  Professional Setup  ->  60%+ Searchable  ->  Profile  ->  Opportunities  ->  Apply  ->  Shortlist  ->  Audition  ->  Selection  ->  Work Record
+INDUSTRY
+Register  ->  ₹4,999  ->  Verification  ->  100 Credits  ->  Search  ->  Preview  ->  Full Profile  ->  Favourite / Shortlist  ->  Submit Opportunity  ->  Applicants  ->  Select
+PROFILE CREDIT
+Search Free  ->  Preview Free  ->  Full Profile = 1 Credit  ->  7-day Free Revisit  ->  0 Credits  ->  ₹100 View or 25/₹2,000 Bundle
+ADMIN
+KPI Dashboard  ->  Verification  ->  Opportunity Review  ->  Users / Moderation  ->  Payments / Credits  ->  Analytics  ->  Audit
+51. Remaining Finalization Items
+Item
+Status / recommendation
+Brand naming
+Confirm whether final legal/public brand is “Vismaya Creative Studio” or “Vismaya Creative Studios”. This specification uses the plural form from the latest conversation.
+Final logo
+Not yet supplied in this specification.
+Exact gold palette
+Direction approved; exact HEX/RGB values to be finalized in brand system.
+Final fonts
+Editorial serif + sans-serif direction approved; exact font family to be selected.
+GST presentation
+Applicable tax shown separately where required; finance/legal team must confirm whether advertised ₹999/₹4,999 prices are tax-inclusive or tax-exclusive.
+Payment gateway
+Provider not yet locked.
+Legal text
+Terms, Privacy and mature-content policy require final legal drafting.
+File limits
+Vismaya/admin to define photo resolution, video duration/size and document formats by profession.
+Application limits
+Vismaya to define numerical application limits operationally.
+Support contacts
+Final support email / WhatsApp number not yet supplied.
+
+52. MVP Development Acceptance Checklist
+[ ] Logged-out homepage and auth routes match access rules.
+[ ] Talent and Industry registrations branch correctly and resume drafts.
+[ ] Payment gate occurs after basic identity and before professional registration.
+[ ] Profile strength calculation is weighted and profession-aware.
+[ ] Profession-specific forms are configuration driven.
+[ ] Under-18 guardian conditional flow works.
+[ ] Talent search cards, preview and full profile respect visibility rules.
+[ ] Industry view-credit charging honors 7-day duplicate-view exemption.
+[ ] Favourites and project shortlists are private to organization.
+[ ] Opportunity submission cannot publish without Vismaya approval.
+[ ] Applications, withdrawals, custom questions, audition and selection statuses function end to end.
+[ ] No direct messaging surface exists.
+[ ] Identity and professional verification badges are independent.
+[ ] Private physical/contact/remuneration data never leak to public/login-user views.
+[ ] Admin can search users, organizations, opportunities, transactions and Vismaya IDs.
+[ ] Payments, credits and critical admin actions produce audit records.
+[ ] Portfolio moderation, duplicate detection and main-photo rules are enforced.
+[ ] Mobile navigation follows hamburger model and role-specific destinations.
+[ ] Error and support states are implemented.

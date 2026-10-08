@@ -1,0 +1,59 @@
+
+Vismaya Casting Platform
+Product Requirements Document (PRD) — Phase 1
+Executive Summary
+Vismaya is a highly secure, Admin-curated web platform designed to connect acting talent with casting directors, production houses, and event organizers (Recruiters). For Phase 1, the platform operates on a strict "Admin-mediated" model. To ensure maximum quality control, prevent fraud, and protect user privacy, Recruiters cannot browse an open talent directory or contact talent directly. The Vismaya Admin team acts as the central engine, handling requirement approvals, candidate shortlisting, and final booking coordination.
+Platform Delivery Format
+Format: Fully responsive Web Application (Optimized for both Desktop and Mobile browsers).
+App Stores: No native iOS/Android apps for Phase 1.
+User Roles & Core Workflows
+Talent User Journey
+Profile Creation: Talent builds a comprehensive profile requiring Admin approval before activation. Profiles include:
+Personal details and contact information.
+Physical attributes and measurements.
+Media portfolio (headshots, full-body photos, showreels, standard audition clips).
+Skills, languages, and training/experience.
+Availability and location preferences.
+Child-artist consent sections (where applicable).
+Discovering Casting Calls: Talent browses an active "Casting Calls" page with robust filters (category, city, age range, gender, language, paid/unpaid, etc.).
+Application Process: Talent views detailed project requirements and clicks "Apply Now." They have the option to upload a selective, role-specific audition clip during the application process.
+Application Tracking: A "My Applications" dashboard tracks progress through four stages:
+Applied
+Under Review
+Shortlisted
+Not Selected
+Recruiter User Journey
+Requirement Submission: Recruiters (casting directors, brands, producers) create accounts and use a "Post a Requirement" form to outline project details, budget, dates, locations, and ideal candidate attributes.
+No Open Directory: Recruiters cannot browse the general talent pool. The talent directory is completely hidden.
+Shortlist Review: Once Vismaya Admin curates a shortlist for a specific requirement, the Recruiter reviews the profiles, photos, and audition clips via their dedicated project dashboard.
+Selection Tools: Recruiters indicate preferences to the Admin using a "Select/Reject" toggle or a star rating system on the shortlisted profiles.
+Coordination: Recruiters do not contact talent directly. All final scheduling, booking, and communication are handled by Vismaya Admin.
+Admin User Journey (Platform Engine)
+User Management: Admins verify, approve, reject, or suspend all Talent and Recruiter profiles.
+Content Moderation: Admins review all uploaded media (photos, audition clips, showreels) for quality and safety compliance.
+Casting Call Management: Admins review Recruiter "Requirement Requests," contact the Recruiter for offline clarification if needed, and convert approved requests into live, public casting calls.
+Application Pipeline & Shortlisting: Admins review all talent applications for a specific call, filter out unqualified candidates, and push the curated selections to the Recruiter’s dashboard.
+Booking Execution: Admins handle all offline coordination, communication, and schedule confirmations with the finalized talent.
+Data & Fields
+Casting Call Data Fields
+All public casting calls (posted strictly by Admin) will display:
+
+Project title and type (film, advertisement, OTT, music video, etc.)
+Brief description and story/character overview
+Roles and number of characters to cast
+Character descriptions (age range, gender, look, language, skills, etc.)
+Shooting location(s) and expected dates
+Budget or remuneration range (paid, unpaid, travel + stay, or TBA)
+Application deadline
+Required submission materials (photos, videos, audition clip, etc.)
+Eligibility criteria (experience level, union status, location preference)
+Monetization & Financials
+Access Fees: The platform supports a subscription fee or a one-time listing fee for Talent and/or Recruiters to utilize the software.
+Success Commissions: Vismaya collects a commission percentage on successfully booked roles. The system allows flexibility to collect this commission from either the Talent's payout or directly from the Recruiter.
+Note on Phase 1 Payments: Financial transactions and contract signings are handled offline by the Vismaya team. The Admin dashboard will log and track these payments manually, with no automated payment gateways built into the software for this phase.
+Notifications & System Alerts
+In-App Dashboard Alerts: Real-time updates delivered via a notification center (e.g., application status changes, new shortlists ready for review).
+SMS/WhatsApp Integration: Automated external alerts reserved for urgent, time-sensitive communications (e.g., scheduled audition times, final booking confirmations).
+Admin Broadcasts: A tool for the Vismaya team to send custom announcements or mass notifications to specific, filtered user segments (e.g., all verified actors in Mumbai).
+Analytics & Reporting
+Admin Dashboard Metrics: Basic reporting capabilities to monitor total active users, application volume, live casting calls, subscription status, and logged revenue.
