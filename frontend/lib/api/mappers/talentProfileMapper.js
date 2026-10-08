@@ -177,48 +177,53 @@ export function fromApi(profile) {
 export function toApi(profile) {
   if (!profile) return {};
 
+  const pers = profile.personalDetails || profile.personal || {};
+  const phys = profile.physicalDetails || profile.physical || profile.physicalAttributes || {};
+
   const payload = {
-    stageName: profile.stageName?.trim() || profile.name?.trim(),
-    firstName: profile.firstName?.trim(),
-    middleName: profile.middleName?.trim(),
-    lastName: profile.lastName?.trim(),
-    headline: profile.headline?.trim(),
-    bio: profile.bio?.trim(),
-    profilePhoto: profile.profilePhoto || profile.avatar,
-    gender: profile.gender,
-    nationality: profile.nationality || "Indian",
-    careerStage: profile.careerStage,
-    category: profile.category || "open_talent",
-    primaryProfession: profile.primaryProfession || profile.profession,
-    secondaryProfessions: Array.isArray(profile.secondaryProfessions) ? profile.secondaryProfessions : [],
-    primaryDepartment: profile.primaryDepartment,
-    primaryDesignation: profile.primaryDesignation,
+    stageName: profile.stageName?.trim() || pers.stageName?.trim() || profile.name?.trim() || pers.fullName?.trim(),
+    firstName: profile.firstName?.trim() || pers.firstName?.trim(),
+    middleName: profile.middleName?.trim() || pers.middleName?.trim(),
+    lastName: profile.lastName?.trim() || pers.lastName?.trim(),
+    headline: profile.headline?.trim() || pers.headline?.trim(),
+    bio: profile.bio?.trim() || pers.bio?.trim(),
+    profilePhoto: profile.profilePhoto || profile.avatar || pers.avatar || pers.profilePhoto,
+    gender: profile.gender || pers.gender,
+    nationality: profile.nationality || pers.nationality || "Indian",
+    careerStage: profile.careerStage || pers.careerStage || "aspiring",
+    category: profile.category || pers.category || "open_talent",
+    primaryProfession: profile.primaryProfession || pers.primaryRole || profile.profession || "Actor",
+    secondaryProfessions: Array.isArray(profile.secondaryProfessions) ? profile.secondaryProfessions : (Array.isArray(pers.secondaryRoles) ? pers.secondaryRoles : []),
+    primaryDepartment: profile.primaryDepartment || pers.department,
+    primaryDesignation: profile.primaryDesignation || pers.designation,
     specializations: Array.isArray(profile.specializations) ? profile.specializations : [],
     secondaryDepartments: Array.isArray(profile.secondaryDepartments) ? profile.secondaryDepartments : [],
-    currentCity: profile.currentCity || profile.city,
-    currentState: profile.currentState || profile.state,
-    country: profile.country || "India",
-    workingCities: Array.isArray(profile.workingCities) ? profile.workingCities : [],
-    willingToTravel: profile.willingToTravel !== undefined ? Boolean(profile.willingToTravel) : true,
-    willingToRelocate: Boolean(profile.willingToRelocate),
-    passportAvailable: Boolean(profile.passportAvailable),
+    currentCity: profile.currentCity || pers.currentCity || pers.city || profile.city,
+    currentState: profile.currentState || pers.currentState || pers.state || profile.state,
+    country: profile.country || pers.country || "India",
+    workingCities: Array.isArray(profile.workingCities) ? profile.workingCities : (Array.isArray(pers.workingCities) ? pers.workingCities : []),
+    willingToTravel: profile.willingToTravel !== undefined ? Boolean(profile.willingToTravel) : (pers.willingToTravel !== undefined ? Boolean(pers.willingToTravel) : true),
+    willingToRelocate: Boolean(profile.willingToRelocate !== undefined ? profile.willingToRelocate : pers.willingToRelocate),
+    passportAvailable: Boolean(profile.passportAvailable !== undefined ? profile.passportAvailable : pers.passportAvailable),
   };
 
-  if (profile.dob) {
-    payload.dob = new Date(profile.dob);
+  if (profile.dob || pers.dob) {
+    payload.dob = new Date(profile.dob || pers.dob);
   }
 
   // Format skills
-  if (Array.isArray(profile.skills)) {
-    payload.skills = profile.skills.map((s) => {
+  const rawSkills = profile.skills || pers.skills;
+  if (Array.isArray(rawSkills)) {
+    payload.skills = rawSkills.map((s) => {
       if (typeof s === "string") return { name: s, proficiency: "intermediate" };
       return { name: s.name, proficiency: s.proficiency || "intermediate" };
     });
   }
 
   // Format languages
-  if (Array.isArray(profile.languages)) {
-    payload.languages = profile.languages.map((l) => {
+  const rawLangs = profile.languages || pers.languages;
+  if (Array.isArray(rawLangs)) {
+    payload.languages = rawLangs.map((l) => {
       if (typeof l === "string") return { language: l, proficiency: "conversational" };
       return { language: l.language, proficiency: l.proficiency || "conversational" };
     });
@@ -234,8 +239,21 @@ export function toApi(profile) {
     showreelUrl: profile.portfolio?.showreelUrl || profile.showreel || "",
   };
 
-  if (profile.physicalAttributes) payload.physicalAttributes = profile.physicalAttributes;
-  if (profile.remunerationExpectation) payload.remunerationExpectation = profile.remunerationExpectation;
+  payload.physicalAttributes = {
+    heightCm: phys.heightCm || phys.height || undefined,
+    weightKg: phys.weightKg || phys.weight || undefined,
+    chestInches: phys.chestInches || phys.chest || undefined,
+    waistInches: phys.waistInches || phys.waist || undefined,
+    bodyType: phys.bodyType || undefined,
+    skinTone: phys.skinTone || undefined,
+    eyeColor: phys.eyeColor || undefined,
+    hairColor: phys.hairColor || undefined,
+  };
+
+  if (profile.remunerationExpectation || profile.remuneration) {
+    payload.remunerationExpectation = profile.remunerationExpectation || profile.remuneration;
+  }
+
 
   return payload;
 }

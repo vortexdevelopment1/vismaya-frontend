@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+
+import { useParams, useRouter } from "next/navigation";
 import {
   ArrowLeft,
   Calendar,
@@ -23,13 +24,24 @@ import PublicNav from "@/components/PublicNav";
 import PublicFooter from "@/components/PublicFooter";
 import Skeleton from "@/components/shared/Skeleton";
 import { useWorkflow } from "@/lib/shared/workflowStore";
+import { useAuth } from "@/context/AuthContext";
+import { isRealMode } from "@/lib/api/config";
 import { formatDate } from "@/lib/shared/dateUtils";
 
 export default function PublicOpportunityDetailsPage() {
   const params = useParams();
   const { opportunityId } = params;
+  const router = useRouter();
 
   const { getOpportunity, getProject, isHydrated } = useWorkflow();
+  const { user, loading: authLoading, isAuthenticated } = useAuth();
+
+  // Enforce Master Spec v2.0: /opportunities/[id] redirects to /login if unauthenticated
+  useEffect(() => {
+    if (isRealMode("opportunities") && !authLoading && !isAuthenticated) {
+      router.replace(`/login?redirect=${encodeURIComponent(`/opportunities/${opportunityId}`)}`);
+    }
+  }, [authLoading, isAuthenticated, opportunityId, router]);
 
   // Demo logged-in state (defaults to false for public view, toggleable for demo inspection)
   const [isLoggedIn, setIsLoggedIn] = useState(false);

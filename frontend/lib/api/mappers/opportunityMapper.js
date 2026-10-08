@@ -132,11 +132,12 @@ export function toApi(opp) {
   const payload = {
     projectId: opp.projectId,
     title: opp.title?.trim(),
-    summary: opp.summary?.trim() || opp.fullBrief?.trim() || "",
+    summary: opp.summary?.trim() || opp.fullBrief?.trim() || opp.description?.trim() || "",
     role: firstRole?.roleName?.trim() || opp.role?.trim() || opp.title?.trim(),
     location: opp.location?.trim() || "Mumbai",
     remuneration: opp.remuneration?.trim(),
     positionsCount: totalPositions,
+
     // Provide both flat model and target roles[] contract
     roles: roles.map((r) => ({
       roleName: r.roleName || r.name,

@@ -1,27 +1,31 @@
 /**
  * Recruiter / Organization API Service
- * Manages organization profile, projects, casting briefs (opportunities), applicants, auditions, and credits.
+ * Manages organization profile, projects, project shortlists, casting briefs (opportunities), applicants, auditions, and credits.
  */
 
 import { apiClient } from "../client.js";
 import { isRealMode } from "../config.js";
 import {
   mapOrganization,
+  mapOrganizationToApi,
   mapProject,
+  mapProjectToApi,
   mapOpportunity,
+  mapOpportunityToApi,
   mapApplication,
+  mapApplicationToApi,
   mapAudition,
+  mapAuditionToApi,
   mapCreditTransaction,
 } from "../mappers/index.js";
+
 import {
   initialCompanyProfile,
   initialRequirements,
   initialShortlistedTalent,
 } from "../../recruiter/mockData.js";
 import {
-  mockOrganizations,
   mockProjects,
-  mockOpportunities,
   mockApplications,
   mockAuditions,
 } from "./mockSeedData.js";
@@ -39,7 +43,7 @@ export const recruiterService = {
     }
 
     const res = await apiClient.get("/api/organization/profile");
-    const doc = res?.data || res;
+    const doc = res?.data || res?.organization || res;
     return {
       success: true,
       data: doc ? mapOrganization(doc) : null,
@@ -58,12 +62,25 @@ export const recruiterService = {
       };
     }
 
-    const res = await apiClient.post("/api/organization/profile", payload);
-    const doc = res?.data || res;
+    const mappedPayload = mapOrganizationToApi(payload);
+    const res = await apiClient.post("/api/organization/profile", mappedPayload);
+    const doc = res?.data || res?.organization || res;
     return {
       success: true,
       data: doc ? mapOrganization(doc) : null,
+      message: res?.message,
     };
+  },
+
+  /**
+   * Upload organization verification document
+   * @param {Object} payload { docType, docCategory, fileUrl }
+   */
+  async uploadVerificationDoc(payload) {
+    if (!isRealMode("recruiter")) {
+      return { success: true, message: "Verification document uploaded (Mock)" };
+    }
+    return apiClient.post("/api/organization/verification-doc", payload);
   },
 
   /**
@@ -78,7 +95,7 @@ export const recruiterService = {
     }
 
     const res = await apiClient.get("/api/projects");
-    const docs = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+    const docs = Array.isArray(res?.data) ? res.data : Array.isArray(res?.projects) ? res.projects : Array.isArray(res) ? res : [];
     return {
       success: true,
       data: docs.map(mapProject),
@@ -99,24 +116,26 @@ export const recruiterService = {
     }
 
     const res = await apiClient.get(`/api/projects/${projectId}`);
-    const doc = res?.data || res;
+    const doc = res?.data || res?.project || res;
     return {
       success: true,
       data: doc ? mapProject(doc) : null,
+      opportunities: res?.opportunities,
+      shortlists: res?.shortlists,
     };
   },
 
   /**
    * Create a new project
-   * @param {Object} payload { title, type, description, bannerImage }
+   * @param {Object} payload { projectName, projectType, description }
    */
   async createProject(payload) {
     if (!isRealMode("projects")) {
       const newProj = {
         id: "proj_mock_" + Date.now(),
         orgId: "org-1",
-        title: payload.title,
-        type: payload.type || "Feature Film",
+        title: payload.projectName || payload.title,
+        type: payload.projectType || payload.type || "Feature Film",
         description: payload.description || "",
         status: "Active",
         createdAt: new Date().toISOString(),
@@ -127,8 +146,9 @@ export const recruiterService = {
       };
     }
 
-    const res = await apiClient.post("/api/projects", payload);
-    const doc = res?.data || res;
+    const mappedPayload = mapProjectToApi(payload);
+    const res = await apiClient.post("/api/projects", mappedPayload);
+    const doc = res?.data || res?.project || res;
     return {
       success: true,
       data: doc ? mapProject(doc) : null,
@@ -148,12 +168,67 @@ export const recruiterService = {
       };
     }
 
-    const res = await apiClient.patch(`/api/projects/${projectId}`, payload);
-    const doc = res?.data || res;
+    const mappedPayload = mapProjectToApi(payload);
+    const res = await apiClient.patch(`/api/projects/${projectId}`, mappedPayload);
+    const doc = res?.data || res?.project || res;
+
     return {
       success: true,
       data: doc ? mapProject(doc) : null,
     };
+  },
+
+  /**
+   * Add talent to project shortlist
+   * @param {string} projectId
+   * @param {Object} payload { talentId, vismayaId, role, opportunityId }
+   */
+  async addToShortlist(projectId, payload) {
+    if (!isRealMode("projects")) {
+      return { success: true, message: "Talent added to shortlist (Mock)" };
+    }
+    return apiClient.post(`/api/projects/${projectId}/shortlist`, payload);
+  },
+
+  /**
+   * Fetch project shortlist
+   * @param {string} projectId
+   * @param {Object} params { status, role }
+   */
+  async getProjectShortlist(projectId, params = {}) {
+    if (!isRealMode("projects")) {
+      return { success: true, data: [] };
+    }
+    const res = await apiClient.get(`/api/projects/${projectId}/shortlist`, { params });
+    return {
+      success: true,
+      data: res?.data || res?.shortlist || res || [],
+    };
+  },
+
+  /**
+   * Update shortlisted talent status in project
+   * @param {string} projectId
+   * @param {string} shortlistId
+   * @param {Object} payload { status, role }
+   */
+  async updateShortlistItem(projectId, shortlistId, payload) {
+    if (!isRealMode("projects")) {
+      return { success: true, message: "Shortlist updated (Mock)" };
+    }
+    return apiClient.patch(`/api/projects/${projectId}/shortlist/${shortlistId}`, payload);
+  },
+
+  /**
+   * Remove talent from project shortlist
+   * @param {string} projectId
+   * @param {string} shortlistId
+   */
+  async removeFromShortlist(projectId, shortlistId) {
+    if (!isRealMode("projects")) {
+      return { success: true, message: "Shortlist item removed (Mock)" };
+    }
+    return apiClient.delete(`/api/projects/${projectId}/shortlist/${shortlistId}`);
   },
 
   /**
@@ -168,7 +243,7 @@ export const recruiterService = {
     }
 
     const res = await apiClient.get("/api/opportunities/my-opportunities");
-    const docs = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+    const docs = Array.isArray(res?.data) ? res.data : Array.isArray(res?.opportunities) ? res.opportunities : Array.isArray(res) ? res : [];
     return {
       success: true,
       data: docs.map(mapOpportunity),
@@ -194,8 +269,9 @@ export const recruiterService = {
       };
     }
 
-    const res = await apiClient.post("/api/opportunities", payload);
-    const doc = res?.data || res;
+    const mappedPayload = mapOpportunityToApi(payload);
+    const res = await apiClient.post("/api/opportunities", mappedPayload);
+    const doc = res?.data || res?.opportunity || res;
     return {
       success: true,
       data: doc ? mapOpportunity(doc) : null,
@@ -203,9 +279,33 @@ export const recruiterService = {
   },
 
   /**
+   * Edit and resubmit opportunity
+   * @param {string} opportunityId
+   * @param {Object} payload
+   */
+  async updateOpportunity(opportunityId, payload) {
+    if (!isRealMode("opportunities")) {
+      return {
+        success: true,
+        data: mapOpportunity({ id: opportunityId, ...payload }),
+      };
+    }
+
+    const mappedPayload = mapOpportunityToApi(payload);
+    const res = await apiClient.put(`/api/opportunities/${opportunityId}`, mappedPayload);
+    const doc = res?.data || res?.opportunity || res;
+
+    return {
+      success: true,
+      data: doc ? mapOpportunity(doc) : null,
+      message: res?.message,
+    };
+  },
+
+  /**
    * Request cancellation for an opportunity
    * @param {string} opportunityId
-   * @param {Object} payload { reason }
+   * @param {Object} payload { cancellationReason }
    */
   async requestOpportunityCancellation(opportunityId, payload) {
     if (!isRealMode("opportunities")) {
@@ -219,7 +319,19 @@ export const recruiterService = {
     return {
       success: true,
       data: res?.data || res,
+      message: res?.message,
     };
+  },
+
+  /**
+   * Mark opportunity completed
+   * @param {string} opportunityId
+   */
+  async completeOpportunity(opportunityId) {
+    if (!isRealMode("opportunities")) {
+      return { success: true, message: "Opportunity marked completed (Mock)" };
+    }
+    return apiClient.post(`/api/opportunities/${opportunityId}/complete`);
   },
 
   /**
@@ -239,7 +351,7 @@ export const recruiterService = {
     }
 
     const res = await apiClient.get(`/api/applications/opportunity/${opportunityId}`);
-    const docs = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+    const docs = Array.isArray(res?.data) ? res.data : Array.isArray(res?.applicants) ? res.applicants : Array.isArray(res) ? res : [];
     return {
       success: true,
       data: docs.map(mapApplication),
@@ -259,7 +371,7 @@ export const recruiterService = {
     }
 
     const res = await apiClient.patch(`/api/applications/${applicationId}/review`);
-    const doc = res?.data || res;
+    const doc = res?.data || res?.application || res;
     return {
       success: true,
       data: doc ? mapApplication(doc) : null,
@@ -269,8 +381,9 @@ export const recruiterService = {
   /**
    * Shortlist candidate application
    * @param {string} applicationId
+   * @param {Object} payload { note }
    */
-  async shortlistApplication(applicationId) {
+  async shortlistApplication(applicationId, payload = {}) {
     if (!isRealMode("applications")) {
       return {
         success: true,
@@ -278,8 +391,8 @@ export const recruiterService = {
       };
     }
 
-    const res = await apiClient.patch(`/api/applications/${applicationId}/shortlist`);
-    const doc = res?.data || res;
+    const res = await apiClient.patch(`/api/applications/${applicationId}/shortlist`, payload);
+    const doc = res?.data || res?.application || res;
     return {
       success: true,
       data: doc ? mapApplication(doc) : null,
@@ -289,8 +402,9 @@ export const recruiterService = {
   /**
    * Select candidate for role
    * @param {string} applicationId
+   * @param {Object} payload { note }
    */
-  async selectApplication(applicationId) {
+  async selectApplication(applicationId, payload = {}) {
     if (!isRealMode("applications")) {
       return {
         success: true,
@@ -298,8 +412,8 @@ export const recruiterService = {
       };
     }
 
-    const res = await apiClient.patch(`/api/applications/${applicationId}/select`);
-    const doc = res?.data || res;
+    const res = await apiClient.patch(`/api/applications/${applicationId}/select`, payload);
+    const doc = res?.data || res?.application || res;
     return {
       success: true,
       data: doc ? mapApplication(doc) : null,
@@ -309,8 +423,9 @@ export const recruiterService = {
   /**
    * Mark application as not selected
    * @param {string} applicationId
+   * @param {Object} payload { reason }
    */
-  async markNotSelected(applicationId) {
+  async markNotSelected(applicationId, payload = {}) {
     if (!isRealMode("applications")) {
       return {
         success: true,
@@ -318,8 +433,8 @@ export const recruiterService = {
       };
     }
 
-    const res = await apiClient.patch(`/api/applications/${applicationId}/not-selected`);
-    const doc = res?.data || res;
+    const res = await apiClient.patch(`/api/applications/${applicationId}/not-selected`, payload);
+    const doc = res?.data || res?.application || res;
     return {
       success: true,
       data: doc ? mapApplication(doc) : null,
@@ -329,7 +444,7 @@ export const recruiterService = {
   /**
    * Request an audition round from candidate
    * @param {string} applicationId
-   * @param {Object} payload { type, deadline, instructions, scriptSidesUrl }
+   * @param {Object} payload { type, deadline, sceneBrief, instructions, scriptSidesUrl }
    */
   async requestAudition(applicationId, payload) {
     if (!isRealMode("auditions")) {
@@ -346,7 +461,7 @@ export const recruiterService = {
     }
 
     const res = await apiClient.post(`/api/auditions/application/${applicationId}`, payload);
-    const doc = res?.data || res;
+    const doc = res?.data || res?.audition || res;
     return {
       success: true,
       data: doc ? mapAudition(doc) : null,
@@ -356,7 +471,7 @@ export const recruiterService = {
   /**
    * Review submitted audition
    * @param {string} auditionId
-   * @param {Object} payload { status, feedback }
+   * @param {Object} payload { organizationFeedback, organizationRating }
    */
   async reviewAudition(auditionId, payload) {
     if (!isRealMode("auditions")) {
@@ -367,10 +482,25 @@ export const recruiterService = {
     }
 
     const res = await apiClient.patch(`/api/auditions/${auditionId}/review`, payload);
-    const doc = res?.data || res;
+    const doc = res?.data || res?.audition || res;
     return {
       success: true,
       data: doc ? mapAudition(doc) : null,
+    };
+  },
+
+  /**
+   * Fetch all auditions scheduled by organization
+   */
+  async getOrganizationAuditions() {
+    if (!isRealMode("auditions")) {
+      return { success: true, data: mockAuditions.map(mapAudition) };
+    }
+    const res = await apiClient.get("/api/auditions/organization");
+    const docs = Array.isArray(res?.data) ? res.data : Array.isArray(res?.auditions) ? res.auditions : Array.isArray(res) ? res : [];
+    return {
+      success: true,
+      data: docs.map(mapAudition),
     };
   },
 
@@ -381,6 +511,7 @@ export const recruiterService = {
     if (!isRealMode("credits")) {
       return {
         success: true,
+        balance: 42,
         data: { balance: 42, usedCredits: 18, totalAllocated: 60 },
       };
     }
@@ -388,9 +519,11 @@ export const recruiterService = {
     const res = await apiClient.get("/api/credits/balance");
     return {
       success: true,
+      balance: res?.balance ?? res?.data?.balance ?? 0,
       data: res?.data || res,
     };
   },
+
 
   /**
    * Fetch credit transaction history
@@ -407,22 +540,29 @@ export const recruiterService = {
             description: "Credit Pack Standard",
             createdAt: "2026-09-01T10:00:00.000Z",
           }),
-          mapCreditTransaction({
-            id: "tx-2",
-            amount: -1,
-            type: "unlock",
-            description: "Talent Profile Unlock: VIS-TAL-904",
-            createdAt: "2026-09-15T14:30:00.000Z",
-          }),
         ],
       };
     }
 
     const res = await apiClient.get("/api/credits/history");
-    const docs = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+    const docs = Array.isArray(res?.data) ? res.data : Array.isArray(res?.history) ? res.history : Array.isArray(res) ? res : [];
     return {
       success: true,
       data: docs.map(mapCreditTransaction),
+    };
+  },
+
+  /**
+   * Fetch previously unlocked talent profiles
+   */
+  async getViewedTalents() {
+    if (!isRealMode("credits")) {
+      return { success: true, data: [] };
+    }
+    const res = await apiClient.get("/api/credits/viewed");
+    return {
+      success: true,
+      data: res?.data || res?.viewedTalents || res || [],
     };
   },
 
@@ -444,6 +584,7 @@ export const recruiterService = {
     return {
       success: true,
       data: res?.data || res,
+      message: res?.message,
     };
   },
 
@@ -461,7 +602,40 @@ export const recruiterService = {
     const res = await apiClient.get("/api/organization/favourites");
     return {
       success: true,
-      data: res?.data || res,
+      data: res?.data || res?.favourites || res || [],
     };
+  },
+
+  /**
+   * Add talent to favourites
+   * @param {string} talentId
+   */
+  async addFavourite(talentId) {
+    if (!isRealMode("recruiter")) {
+      return { success: true, message: "Added to favourites (Mock)" };
+    }
+    return apiClient.post("/api/organization/favourites", { talentId });
+  },
+
+  /**
+   * Check favourite status
+   * @param {string} talentId
+   */
+  async checkFavourite(talentId) {
+    if (!isRealMode("recruiter")) {
+      return { success: true, isFavourite: false };
+    }
+    return apiClient.get(`/api/organization/favourites/check/${talentId}`);
+  },
+
+  /**
+   * Remove talent from favourites
+   * @param {string} talentId
+   */
+  async removeFavourite(talentId) {
+    if (!isRealMode("recruiter")) {
+      return { success: true, message: "Removed from favourites (Mock)" };
+    }
+    return apiClient.delete(`/api/organization/favourites/${talentId}`);
   },
 };

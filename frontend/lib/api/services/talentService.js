@@ -1,6 +1,6 @@
 /**
  * Talent Domain API Service
- * Manages talent profile, applications, auditions, self-tape submissions, and analytics.
+ * Manages talent profile, applications, auditions, self-tape submissions, share cards, and analytics.
  */
 
 import { apiClient } from "../client.js";
@@ -25,10 +25,11 @@ export const talentService = {
     }
 
     const res = await apiClient.get("/api/talent/profile/my");
-    const doc = res?.data || res;
+    const doc = res?.data || res?.profile || res;
     return {
       success: true,
       data: doc ? mapTalentProfile(doc) : null,
+      verificationBadges: res?.verificationBadges,
     };
   },
 
@@ -44,12 +45,14 @@ export const talentService = {
       };
     }
 
-    const body = payload.personalDetails ? payload : mapTalentProfileToBackend(payload);
+    const body = mapTalentProfileToBackend(payload);
     const res = await apiClient.post("/api/talent/profile", body);
-    const doc = res?.data || res;
+
+    const doc = res?.data || res?.profile || res;
     return {
       success: true,
       data: doc ? mapTalentProfile(doc) : null,
+      message: res?.message,
     };
   },
 
@@ -61,9 +64,10 @@ export const talentService = {
       return {
         success: true,
         data: {
-          percentage: 85,
-          missingFields: ["Voice Samples", "Showreel"],
-          isComplete: false,
+          completionPercentage: 85,
+          missingSections: ["Voice Samples", "Showreel"],
+          isEligibleToApply: true,
+          isSearchable: true,
         },
       };
     }
@@ -94,7 +98,27 @@ export const talentService = {
     const res = await apiClient.get("/api/talent/profile/analytics");
     return {
       success: true,
-      data: res?.data || res,
+      data: res?.data || res?.analytics || res,
+    };
+  },
+
+  /**
+   * Generate shareable public card
+   * @param {string} vismayaIdOrId
+   */
+  async getShareCard(vismayaIdOrId) {
+    if (!isRealMode("talent")) {
+      return {
+        success: true,
+        card: { vismayaId: vismayaIdOrId, stageName: "Aarav Sharma" },
+        shareUrl: `https://vismayacreativestudios.com/talent/${vismayaIdOrId}`,
+      };
+    }
+    const res = await apiClient.get(`/api/talent/${vismayaIdOrId}/share-card`);
+    return {
+      success: true,
+      card: res?.card,
+      shareUrl: res?.shareUrl,
     };
   },
 
@@ -110,7 +134,7 @@ export const talentService = {
     }
 
     const res = await apiClient.get("/api/applications/my");
-    const docs = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+    const docs = Array.isArray(res?.data) ? res.data : Array.isArray(res?.applications) ? res.applications : Array.isArray(res) ? res : [];
     return {
       success: true,
       data: docs.map(mapApplication),
@@ -120,7 +144,7 @@ export const talentService = {
   /**
    * Apply for an opportunity
    * @param {string} opportunityId
-   * @param {Object} payload { roleId, notes, customAnswers, mediaIds }
+   * @param {Object} payload { roleApplied, coverNote, customAnswers, consentGiven }
    */
   async applyToOpportunity(opportunityId, payload) {
     if (!isRealMode("applications")) {
@@ -138,19 +162,24 @@ export const talentService = {
       };
     }
 
-    const res = await apiClient.post(`/api/applications/${opportunityId}/apply`, payload);
-    const doc = res?.data || res;
+    const res = await apiClient.post(`/api/applications/${opportunityId}/apply`, {
+      consentGiven: true,
+      ...payload,
+    });
+    const doc = res?.data || res?.application || res;
     return {
       success: true,
       data: doc ? mapApplication(doc) : null,
+      message: res?.message,
     };
   },
 
   /**
    * Withdraw an active application
    * @param {string} applicationId
+   * @param {Object} payload { withdrawalReason, confirm }
    */
-  async withdrawApplication(applicationId) {
+  async withdrawApplication(applicationId, payload = {}) {
     if (!isRealMode("applications")) {
       return {
         success: true,
@@ -158,16 +187,21 @@ export const talentService = {
       };
     }
 
-    const res = await apiClient.patch(`/api/applications/${applicationId}/withdraw`);
-    const doc = res?.data || res;
+    const res = await apiClient.patch(`/api/applications/${applicationId}/withdraw`, {
+      confirm: true,
+      withdrawalReason: payload.withdrawalReason || "Personal reasons",
+      ...payload,
+    });
+    const doc = res?.data || res?.application || res;
     return {
       success: true,
       data: doc ? mapApplication(doc) : null,
+      message: res?.message,
     };
   },
 
   /**
-   * Request re-application permission after rejection
+   * Request re-application permission after withdrawal
    * @param {string} applicationId
    * @param {Object} payload { reason }
    */
@@ -182,7 +216,8 @@ export const talentService = {
     const res = await apiClient.post(`/api/applications/${applicationId}/reapplication-request`, payload);
     return {
       success: true,
-      data: res?.data || res,
+      data: res?.data || res?.application || res,
+      message: res?.message,
     };
   },
 
@@ -198,7 +233,7 @@ export const talentService = {
     }
 
     const res = await apiClient.get("/api/auditions/my");
-    const docs = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+    const docs = Array.isArray(res?.data) ? res.data : Array.isArray(res?.auditions) ? res.auditions : Array.isArray(res) ? res : [];
     return {
       success: true,
       data: docs.map(mapAudition),
@@ -208,7 +243,7 @@ export const talentService = {
   /**
    * Submit self-tape video for an audition
    * @param {string} auditionId
-   * @param {Object} payload { videoUrl, notes }
+   * @param {Object} payload { videoUrl, notes, durationSeconds }
    */
   async submitSelfTape(auditionId, payload) {
     if (!isRealMode("auditions")) {
@@ -217,18 +252,28 @@ export const talentService = {
         data: mapAudition({
           id: auditionId,
           status: "Self-tape Received",
-          selfTapeUrl: payload.videoUrl,
+          selfTapeUrl: payload.videoUrl || payload.selfTapeUrl,
           selfTapeNotes: payload.notes,
           submittedAt: new Date().toISOString(),
         }),
       };
     }
 
-    const res = await apiClient.post(`/api/auditions/${auditionId}/self-tape`, payload);
-    const doc = res?.data || res;
+    const body = {
+      videoUrl: payload.videoUrl || payload.selfTapeUrl,
+      thumbnailUrl: payload.thumbnailUrl,
+      durationSeconds: payload.durationSeconds,
+      fileSizeBytes: payload.fileSizeBytes,
+      notes: payload.notes,
+    };
+
+    const res = await apiClient.post(`/api/auditions/${auditionId}/self-tape`, body);
+    const doc = res?.data || res?.audition || res;
     return {
       success: true,
       data: doc ? mapAudition(doc) : null,
+      message: res?.message,
     };
   },
 };
+

@@ -11,6 +11,30 @@ import { mockPayments } from "./mockSeedData.js";
 
 export const paymentService = {
   /**
+   * Apply a promotional discount coupon
+   * @param {Object} payload { code, planId }
+   */
+  async applyCoupon(payload) {
+    if (!isRealMode("payments")) {
+      return {
+        success: true,
+        data: {
+          code: payload.code || "DISCOUNT",
+          discountPercent: 20,
+          discountAmount: 1000,
+          finalAmount: 3999,
+        },
+      };
+    }
+
+    const res = await apiClient.post("/api/payments/apply-coupon", payload);
+    return {
+      success: true,
+      data: res?.data || res,
+    };
+  },
+
+  /**
    * Create an order for checkout
    * @param {Object} payload { amount, currency, planId, description }
    */
@@ -63,6 +87,32 @@ export const paymentService = {
   },
 
   /**
+   * Get payment receipt / invoice for transaction
+   * @param {string} transactionId
+   */
+  async getPaymentReceipt(transactionId) {
+    if (!isRealMode("payments")) {
+      return {
+        success: true,
+        data: {
+          receiptNumber: `REC-${transactionId}`,
+          transactionId,
+          amount: 4999,
+          currency: "INR",
+          issuedAt: new Date().toISOString(),
+          status: "Paid",
+        },
+      };
+    }
+
+    const res = await apiClient.get(`/api/payments/receipt/${transactionId}`);
+    return {
+      success: true,
+      data: res?.data || res,
+    };
+  },
+
+  /**
    * Fetch authenticated user's transaction history
    */
   async getMyTransactions(params = {}) {
@@ -81,3 +131,4 @@ export const paymentService = {
     };
   },
 };
+

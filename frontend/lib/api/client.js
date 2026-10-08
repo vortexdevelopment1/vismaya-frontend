@@ -28,41 +28,50 @@ export class ApiError extends Error {
   }
 }
 
+let memoryAuthToken = null;
+
 /**
- * Get the current JWT token from localStorage (client-side only)
+ * Get the current JWT token from localStorage or in-memory fallback
  */
 export function getAuthToken() {
-  if (typeof window === "undefined") return null;
-  try {
-    return localStorage.getItem(AUTH_TOKEN_KEY);
-  } catch {
-    return null;
+  if (typeof window !== "undefined") {
+    try {
+      return localStorage.getItem(AUTH_TOKEN_KEY) || memoryAuthToken;
+    } catch {
+      return memoryAuthToken;
+    }
+  }
+  return memoryAuthToken;
+}
+
+/**
+ * Save JWT token to localStorage & memory
+ */
+export function setAuthToken(token) {
+  memoryAuthToken = token || null;
+  if (typeof window !== "undefined") {
+    try {
+      if (token) {
+        localStorage.setItem(AUTH_TOKEN_KEY, token);
+      } else {
+        localStorage.removeItem(AUTH_TOKEN_KEY);
+      }
+    } catch {}
   }
 }
 
 /**
- * Save JWT token to localStorage
- */
-export function setAuthToken(token) {
-  if (typeof window === "undefined") return;
-  try {
-    if (token) {
-      localStorage.setItem(AUTH_TOKEN_KEY, token);
-    } else {
-      localStorage.removeItem(AUTH_TOKEN_KEY);
-    }
-  } catch {}
-}
-
-/**
- * Remove JWT token from localStorage
+ * Remove JWT token from localStorage & memory
  */
 export function removeAuthToken() {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.removeItem(AUTH_TOKEN_KEY);
-  } catch {}
+  memoryAuthToken = null;
+  if (typeof window !== "undefined") {
+    try {
+      localStorage.removeItem(AUTH_TOKEN_KEY);
+    } catch {}
+  }
 }
+
 
 /**
  * Handle 401 Unauthorized responses.
@@ -231,6 +240,10 @@ export const apiClient = {
   put: (endpoint, body, options = {}) => apiFetch(endpoint, { ...options, method: "PUT", body }),
   patch: (endpoint, body, options = {}) => apiFetch(endpoint, { ...options, method: "PATCH", body }),
   delete: (endpoint, options = {}) => apiFetch(endpoint, { ...options, method: "DELETE" }),
+  setToken: (token) => setAuthToken(token),
+  getToken: () => getAuthToken(),
+  clearToken: () => removeAuthToken(),
 };
+
 
 export default apiClient;

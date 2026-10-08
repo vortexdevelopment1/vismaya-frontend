@@ -29,6 +29,9 @@ import {
 import PageHeader from "@/components/shared/PageHeader";
 import ProgressBar from "@/components/shared/ProgressBar";
 import { useWorkflow } from "@/lib/shared/workflowStore";
+import { authService } from "@/lib/api/services/authService";
+import { isRealMode } from "@/lib/api/config";
+
 
 const SETTINGS_MENU_ITEMS = [
   { key: "profile", label: "Organization profile", icon: Building2 },
@@ -277,7 +280,7 @@ export default function OrganizationSettingsPage() {
   };
 
   // Security Form Submit
-  const handleUpdatePassword = (e) => {
+  const handleUpdatePassword = async (e) => {
     e.preventDefault();
     const errs = {};
     if (!currentPassword) {
@@ -295,12 +298,26 @@ export default function OrganizationSettingsPage() {
       return;
     }
 
+    if (isRealMode("auth")) {
+      try {
+        const res = await authService.changePassword({ currentPassword, newPassword });
+        if (!res.success) {
+          showFeedback(res.message || "Failed to update password. Please check your current password.", "error");
+          return;
+        }
+      } catch (err) {
+        showFeedback(err.message || "Error updating password.", "error");
+        return;
+      }
+    }
+
     setSecurityErrors({});
     setCurrentPassword("");
     setNewPassword("");
     setConfirmPassword("");
     showFeedback("Password updated securely.");
   };
+
 
   const handleSignOutSession = (sessionId) => {
     setActiveSessions((prev) => prev.filter((s) => s.id !== sessionId));

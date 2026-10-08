@@ -1,6 +1,6 @@
 /**
  * Authentication API Service
- * Handles user registration, login, session tokens, password recovery, and profile queries.
+ * Handles user registration, login, OTP verification, session tokens, password recovery, and profile queries.
  */
 
 import { apiClient } from "../client.js";
@@ -21,7 +21,7 @@ export const authService = {
           email: payload.email,
           role: payload.role || "talent",
           name: payload.name || "New User",
-          status: "Pending",
+          status: "pending",
         },
         token: "mock_jwt_token_" + Date.now(),
       };
@@ -35,7 +35,41 @@ export const authService = {
       success: true,
       user: rawUser ? mapUser(rawUser) : null,
       token: token || null,
+      message: res?.message || data?.message,
     };
+  },
+
+  /**
+   * Verify email OTP for account activation
+   * @param {Object} payload { email, otp }
+   */
+  async verifyRegistration({ email, otp }) {
+    if (!isRealMode("auth")) {
+      return {
+        success: true,
+        message: "Email verified successfully (Mock)",
+        token: "mock_jwt_verified",
+        user: { id: "usr_mock", email, status: "active" },
+      };
+    }
+    const res = await apiClient.post("/api/auth/verify-registration", { email, otp });
+    return {
+      success: true,
+      message: res?.message || "Verified successfully",
+      token: res?.token || res?.data?.token,
+      user: res?.user ? mapUser(res.user) : null,
+    };
+  },
+
+  /**
+   * Resend registration verification OTP
+   * @param {Object} payload { email }
+   */
+  async resendRegistrationOtp({ email }) {
+    if (!isRealMode("auth")) {
+      return { success: true, message: "Verification OTP resent (Mock)" };
+    }
+    return apiClient.post("/api/auth/resend-registration-otp", { email });
   },
 
   /**
@@ -58,7 +92,7 @@ export const authService = {
           email,
           role,
           name: role === "admin" ? "Admin User" : role === "organization" ? "Zee Films Recruiter" : "Aarav Sharma",
-          status: "Active",
+          status: "active",
         },
         token: "mock_jwt_token_auth",
       };
@@ -72,6 +106,7 @@ export const authService = {
       success: true,
       user: rawUser ? mapUser(rawUser) : null,
       token: token || null,
+      sessionId: res?.sessionId || data?.sessionId,
     };
   },
 
@@ -108,7 +143,10 @@ export const authService = {
     return apiClient.post("/api/auth/reset-password", { email, otp, newPassword });
   },
 
-  // CONTRACT-PENDING: User self-service change password
+  /**
+   * Authenticated password change
+   * @param {Object} payload { currentPassword, newPassword }
+   */
   async changePassword({ currentPassword, newPassword }) {
     if (!isRealMode("auth")) {
       return { success: true, message: "Password updated successfully (Mock)" };
@@ -116,7 +154,9 @@ export const authService = {
     return apiClient.post("/api/auth/change-password", { currentPassword, newPassword });
   },
 
-  // CONTRACT-PENDING: Active login sessions list
+  /**
+   * Active login sessions list
+   */
   async getSessions() {
     if (!isRealMode("auth")) {
       return {
@@ -135,11 +175,14 @@ export const authService = {
     const res = await apiClient.get("/api/auth/sessions");
     return {
       success: true,
-      data: res?.data || res || [],
+      data: res?.data || res?.sessions || res || [],
     };
   },
 
-  // CONTRACT-PENDING: Revoke specific login session
+  /**
+   * Revoke specific login session
+   * @param {string} sessionId
+   */
   async revokeSession(sessionId) {
     if (!isRealMode("auth")) {
       return { success: true, message: "Session revoked (Mock)" };
@@ -147,15 +190,19 @@ export const authService = {
     return apiClient.delete(`/api/auth/sessions/${sessionId}`);
   },
 
-  // CONTRACT-PENDING: Revoke all other login sessions
+  /**
+   * Revoke all other login sessions
+   */
   async revokeAllSessions() {
     if (!isRealMode("auth")) {
       return { success: true, message: "All other sessions revoked (Mock)" };
     }
-    return apiClient.delete("/api/auth/sessions");
+    return apiClient.post("/api/auth/logout-all");
   },
 
-  // CONTRACT-PENDING: Server-side token invalidation / logout
+  /**
+   * Server-side token invalidation / logout
+   */
   async logout() {
     if (!isRealMode("auth")) {
       return { success: true, message: "Logged out (Mock)" };

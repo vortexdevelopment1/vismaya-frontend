@@ -22,12 +22,15 @@ export const notificationService = {
     }
 
     const res = await apiClient.get("/api/notifications");
-    const docs = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+    const docs = Array.isArray(res?.notifications) ? res.notifications : Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
     return {
       success: true,
       data: docs.map(mapNotification),
+      unreadCount: res?.unreadCount,
+      total: res?.total,
     };
   },
+
 
   /**
    * Get unread notifications count

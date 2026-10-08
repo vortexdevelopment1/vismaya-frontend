@@ -40,9 +40,14 @@ export function toApi(verif) {
     verificationType: verif.verificationType || verif.type,
   };
 
+  if (verif.documentType) payload.documentType = verif.documentType;
+  if (verif.documentNumber) payload.documentNumber = verif.documentNumber;
+  if (verif.documentUrl) payload.documentUrl = verif.documentUrl;
+
   if (verif.identityData) payload.identityData = verif.identityData;
   if (verif.professionalData) payload.professionalData = verif.professionalData;
   if (verif.businessData) payload.businessData = verif.businessData;
+
 
   if (verif.status) {
     payload.status = toBackendStatus("verification", verif.status);

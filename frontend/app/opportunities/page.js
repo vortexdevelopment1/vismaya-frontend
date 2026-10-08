@@ -1,7 +1,9 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
+
+import { useRouter } from "next/navigation";
 import {
   Search,
   X,
@@ -13,10 +15,21 @@ import EmptyState from "@/components/shared/EmptyState";
 import Skeleton from "@/components/shared/Skeleton";
 import PublicOpportunityCard from "@/components/shared/PublicOpportunityCard";
 import { useWorkflow } from "@/lib/shared/workflowStore";
+import { useAuth } from "@/context/AuthContext";
+import { isRealMode } from "@/lib/api/config";
 import "./opportunities.css";
 
 export default function PublicOpportunitiesPage() {
   const { opportunities, isHydrated, getProject } = useWorkflow();
+  const { user, loading: authLoading, isAuthenticated } = useAuth();
+  const router = useRouter();
+
+  // Enforce Master Spec v2.0: /opportunities is authenticated-only for talent/recruiters
+  useEffect(() => {
+    if (isRealMode("opportunities") && !authLoading && !isAuthenticated) {
+      router.replace(`/login?redirect=${encodeURIComponent("/opportunities")}`);
+    }
+  }, [authLoading, isAuthenticated, router]);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedType, setSelectedType] = useState("all");

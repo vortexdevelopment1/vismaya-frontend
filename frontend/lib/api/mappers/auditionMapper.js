@@ -75,7 +75,7 @@ export function fromApi(audition) {
     deadline: deadIso ? deadIso.split("T")[0] : (audition.deadline || ""),
     status: toFrontendStatus("audition", audition.status || "requested"),
     rawStatus: audition.status || "requested",
-    vismayaApproval: audition.vismayaApproval ? {
+    vismayaApproval: typeof audition.vismayaApproval === "string" ? audition.vismayaApproval : audition.vismayaApproval ? {
       status: audition.vismayaApproval.status || "pending",
       reviewedAt: safeIsoDate(audition.vismayaApproval.reviewedAt, null),
       reviewedBy: audition.vismayaApproval.reviewedBy || null,
@@ -106,6 +106,7 @@ export function toApi(audition) {
     scriptUrl: audition.scriptUrl,
     meetingLink: audition.meetingLink,
     location: audition.location,
+    videoUrl: audition.videoUrl || audition.selfTapeSubmission?.videoUrl,
   };
 
   if (audition.scheduledAt || audition.scheduledDate) {
@@ -129,6 +130,7 @@ export function toApi(audition) {
       notes: audition.selfTapeSubmission?.notes || audition.notes,
     };
   }
+
 
   if (audition.organizationFeedback || audition.feedback) {
     payload.organizationFeedback = audition.organizationFeedback || audition.feedback;

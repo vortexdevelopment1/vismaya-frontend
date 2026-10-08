@@ -55,7 +55,15 @@ export function toApi(media) {
     isMainProfilePhoto: Boolean(media.isMainProfilePhoto || media.isMain),
   };
 
+  if (media.rightsConfirmed !== undefined) {
+    payload.rightsConfirmed = Boolean(media.rightsConfirmed);
+  }
+  if (media.isHeadshot !== undefined) {
+    payload.isHeadshot = Boolean(media.isHeadshot);
+  }
+
   if (media.moderationState) {
+
     payload.moderationState = toBackendStatus("media", media.moderationState);
   }
 

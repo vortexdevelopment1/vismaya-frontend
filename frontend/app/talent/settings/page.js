@@ -30,6 +30,9 @@ import PageHeader from "@/components/shared/PageHeader";
 import Modal from "@/components/shared/Modal";
 import ProgressBar from "@/components/shared/ProgressBar";
 import { useTalent } from "@/lib/talent/TalentContext";
+import { authService } from "@/lib/api/services/authService";
+import { isRealMode } from "@/lib/api/config";
+
 
 export default function TalentSettingsPage() {
   const { profile, updateProfile, addToast } = useTalent();
@@ -160,7 +163,7 @@ export default function TalentSettingsPage() {
     });
   };
 
-  const handleUpdatePassword = (e) => {
+  const handleUpdatePassword = async (e) => {
     if (e) e.preventDefault();
     if (!currentPassword) {
       addToast({
@@ -187,6 +190,27 @@ export default function TalentSettingsPage() {
       return;
     }
 
+    if (isRealMode("auth")) {
+      try {
+        const res = await authService.changePassword({ currentPassword, newPassword });
+        if (!res.success) {
+          addToast({
+            type: "danger",
+            title: "Password Update Failed",
+            message: res.message || "Could not update password. Please check your current password.",
+          });
+          return;
+        }
+      } catch (err) {
+        addToast({
+          type: "danger",
+          title: "Password Update Failed",
+          message: err.message || "An error occurred while updating password.",
+        });
+        return;
+      }
+    }
+
     addToast({
       type: "success",
       title: "Password Updated",
@@ -197,6 +221,7 @@ export default function TalentSettingsPage() {
     setNewPassword("");
     setConfirmPassword("");
   };
+
 
   const handleCancelPassword = () => {
     setCurrentPassword("");
