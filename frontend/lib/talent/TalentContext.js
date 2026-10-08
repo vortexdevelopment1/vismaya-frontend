@@ -9,6 +9,11 @@ import {
   initialNotifications,
 } from "./mockData";
 
+import { isRealMode } from "@/lib/api/config";
+import { talentService } from "@/lib/api/services/talentService";
+import { mediaService } from "@/lib/api/services/mediaService";
+import { notificationService } from "@/lib/api/services/notificationService";
+
 const TalentContext = createContext(null);
 
 export function TalentProvider({ children }) {
@@ -30,6 +35,45 @@ export function TalentProvider({ children }) {
   // 6. Toasts State
   const [toasts, setToasts] = useState([]);
 
+  // Fetch real data on mount when in real API mode
+  useEffect(() => {
+    if (!isRealMode("talent")) return;
+
+    let mounted = true;
+    async function loadTalentData() {
+      try {
+        const [profRes, mediaRes, appRes, notifRes] = await Promise.allSettled([
+          talentService.getMyProfile(),
+          mediaService.getMyMedia(),
+          talentService.getMyApplications(),
+          notificationService.getNotifications(),
+        ]);
+
+        if (mounted) {
+          if (profRes.status === "fulfilled" && profRes.value?.data) {
+            setProfile((prev) => ({ ...prev, ...profRes.value.data }));
+          }
+          if (mediaRes.status === "fulfilled" && Array.isArray(mediaRes.value?.data)) {
+            setPortfolio(mediaRes.value.data);
+          }
+          if (appRes.status === "fulfilled" && Array.isArray(appRes.value?.data)) {
+            setApplications(appRes.value.data);
+          }
+          if (notifRes.status === "fulfilled" && Array.isArray(notifRes.value?.data)) {
+            setNotifications(notifRes.value.data);
+          }
+        }
+      } catch (err) {
+        console.warn("Failed to load talent data in real mode:", err);
+      }
+    }
+
+    loadTalentData();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   // Toast Helpers
   const addToast = ({ type = "success", title, message, duration = 4000 }) => {
     const id = "toast_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4);
@@ -47,14 +91,31 @@ export function TalentProvider({ children }) {
   };
 
   // Profile Update Action
-  const updateProfile = (updatedFields) => {
-    // // TODO: API - PUT /api/talent/profile
-    setProfile((prev) => ({
-      ...prev,
-      ...updatedFields,
-      status: "Submitted",
-      statusNote: "Profile changes have been submitted and are pending Vismaya Admin review.",
-    }));
+  const updateProfile = async (updatedFields) => {
+    if (isRealMode("talent")) {
+      try {
+        const res = await talentService.saveProfile(updatedFields);
+        if (res?.data) {
+          setProfile((prev) => ({ ...prev, ...res.data }));
+        } else {
+          setProfile((prev) => ({ ...prev, ...updatedFields }));
+        }
+      } catch (err) {
+        addToast({
+          type: "danger",
+          title: "Profile Update Failed",
+          message: err?.message || "Could not save profile changes.",
+        });
+        throw err;
+      }
+    } else {
+      setProfile((prev) => ({
+        ...prev,
+        ...updatedFields,
+        status: "Submitted",
+        statusNote: "Profile changes have been submitted and are pending Vismaya Admin review.",
+      }));
+    }
 
     addToast({
       type: "info",
@@ -64,8 +125,28 @@ export function TalentProvider({ children }) {
   };
 
   // Portfolio Media Actions
-  const addMedia = (mediaItem) => {
-    // // TODO: API - POST /api/talent/portfolio/upload
+  const addMedia = async (mediaItem) => {
+    if (isRealMode("media")) {
+      try {
+        const res = await mediaService.addMedia(mediaItem);
+        const savedMedia = res?.data || mediaItem;
+        setPortfolio((prev) => [savedMedia, ...prev]);
+        addToast({
+          type: "success",
+          title: "Media Uploaded for Moderation",
+          message: `"${savedMedia.title || "Media"}" is queued for Admin review.`,
+        });
+        return savedMedia;
+      } catch (err) {
+        addToast({
+          type: "danger",
+          title: "Upload Failed",
+          message: err?.message || "Could not upload media.",
+        });
+        throw err;
+      }
+    }
+
     const newMedia = {
       id: "m-" + Date.now(),
       title: mediaItem.title || "Untitled Upload",
@@ -76,7 +157,7 @@ export function TalentProvider({ children }) {
       gradient: "linear-gradient(135deg, #0f1626 0%, #070b12 100%)",
       fileSize: mediaItem.fileSize || "3.2 MB",
       resolution: mediaItem.resolution || "1080p Full HD",
-      duration: mediaItem.duration || (mediaItem.type.includes("reel") || mediaItem.type.includes("Clip") ? "1:15" : undefined),
+      duration: mediaItem.duration || (mediaItem.type?.includes("reel") || mediaItem.type?.includes("Clip") ? "1:15" : undefined),
     };
 
     setPortfolio((prev) => [newMedia, ...prev]);
@@ -86,10 +167,23 @@ export function TalentProvider({ children }) {
       title: "Media Uploaded for Moderation",
       message: `"${newMedia.title}" is queued for Admin review before becoming visible.`,
     });
+    return newMedia;
   };
 
-  const deleteMedia = (id) => {
-    // // TODO: API - DELETE /api/talent/portfolio/:id
+  const deleteMedia = async (id) => {
+    if (isRealMode("media")) {
+      try {
+        await mediaService.deleteMedia(id);
+      } catch (err) {
+        addToast({
+          type: "danger",
+          title: "Delete Failed",
+          message: err?.message || "Could not remove media.",
+        });
+        throw err;
+      }
+    }
+
     const target = portfolio.find((m) => m.id === id);
     setPortfolio((prev) => prev.filter((m) => m.id !== id));
 
@@ -101,8 +195,33 @@ export function TalentProvider({ children }) {
   };
 
   // Casting Call Application Action
-  const applyToCall = ({ callId, roleName, submittedClipName, applicantNote }) => {
-    // // TODO: API - POST /api/talent/applications
+  const applyToCall = async ({ callId, roleName, submittedClipName, applicantNote }) => {
+    if (isRealMode("applications")) {
+      try {
+        const res = await talentService.applyToOpportunity(callId, {
+          roleName,
+          submittedClipName,
+          notes: applicantNote,
+        });
+        if (res?.data) {
+          setApplications((prev) => [res.data, ...prev]);
+        }
+        addToast({
+          type: "success",
+          title: "Application Submitted!",
+          message: `Applied for ${roleName || "the role"}. Track it in My Applications.`,
+        });
+        return res?.data;
+      } catch (err) {
+        addToast({
+          type: "danger",
+          title: "Application Failed",
+          message: err?.message || "Could not submit application.",
+        });
+        throw err;
+      }
+    }
+
     const call = castingCalls.find((c) => c.id === callId);
     if (!call) return;
 
@@ -162,8 +281,20 @@ export function TalentProvider({ children }) {
     });
   };
 
-  const withdrawApplication = (appId) => {
-    // // TODO: API - DELETE /api/talent/applications/:id
+  const withdrawApplication = async (appId) => {
+    if (isRealMode("applications")) {
+      try {
+        await talentService.withdrawApplication(appId);
+      } catch (err) {
+        addToast({
+          type: "danger",
+          title: "Withdrawal Failed",
+          message: err?.message || "Could not withdraw application.",
+        });
+        throw err;
+      }
+    }
+
     const target = applications.find((a) => a.id === appId);
     if (!target) return;
 
@@ -186,15 +317,29 @@ export function TalentProvider({ children }) {
   };
 
   // Notification Actions
-  const markAsRead = (id) => {
-    // // TODO: API - PATCH /api/talent/notifications/:id/read
+  const markAsRead = async (id) => {
+    if (isRealMode("notifications")) {
+      try {
+        await notificationService.markAsRead(id);
+      } catch (err) {
+        console.warn("Failed to mark notification as read:", err);
+      }
+    }
+
     setNotifications((prev) =>
       prev.map((n) => (n.id === id ? { ...n, read: true } : n))
     );
   };
 
-  const markAllAsRead = () => {
-    // // TODO: API - POST /api/talent/notifications/mark-all-read
+  const markAllAsRead = async () => {
+    if (isRealMode("notifications")) {
+      try {
+        await notificationService.markAllAsRead();
+      } catch (err) {
+        console.warn("Failed to mark all notifications as read:", err);
+      }
+    }
+
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
 
     addToast({

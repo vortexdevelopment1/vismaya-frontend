@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 import {
   initialTalents,
   initialRecruiters,
@@ -16,6 +16,9 @@ import {
   initialSubscriptions,
   initialBroadcasts,
 } from "./mockData";
+import { isRealMode } from "@/lib/api/config";
+import { adminService } from "@/lib/api/services/adminService";
+import { notificationService } from "@/lib/api/services/notificationService";
 
 const AdminContext = createContext(null);
 
@@ -61,6 +64,45 @@ export function AdminProvider({ children }) {
 
   // 14. Toasts State
   const [toasts, setToasts] = useState([]);
+
+  // Fetch real data on mount when in real API mode
+  useEffect(() => {
+    if (!isRealMode("admin")) return;
+
+    let mounted = true;
+    async function loadAdminData() {
+      try {
+        const [talentsRes, orgsRes, mediaRes, notifRes] = await Promise.allSettled([
+          adminService.getAllUsers({ role: "talent" }),
+          adminService.getAllUsers({ role: "organization" }),
+          adminService.getPendingMedia(),
+          notificationService.getNotifications(),
+        ]);
+
+        if (mounted) {
+          if (talentsRes.status === "fulfilled" && Array.isArray(talentsRes.value?.data)) {
+            setTalents(talentsRes.value.data);
+          }
+          if (orgsRes.status === "fulfilled" && Array.isArray(orgsRes.value?.data)) {
+            setRecruiters(orgsRes.value.data);
+          }
+          if (mediaRes.status === "fulfilled" && Array.isArray(mediaRes.value?.data)) {
+            setMediaQueue(mediaRes.value.data);
+          }
+          if (notifRes.status === "fulfilled" && Array.isArray(notifRes.value?.data)) {
+            setNotifications(notifRes.value.data);
+          }
+        }
+      } catch (err) {
+        console.warn("Failed to load admin data in real mode:", err);
+      }
+    }
+
+    loadAdminData();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   // Toast Helpers
   const addToast = ({ type = "success", title, message, duration = 4000 }) => {

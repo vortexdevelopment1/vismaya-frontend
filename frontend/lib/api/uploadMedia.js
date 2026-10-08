@@ -56,13 +56,34 @@ export async function uploadMedia({ file, category = "other", onProgress } = {})
     };
   }
 
-  // In Real Mode: Direct storage upload provider is pending infrastructure decision
-  // CONTRACT-PENDING: Cloud storage provider (e.g. AWS S3 presigned URL or Cloudinary upload)
-  throw new ApiError(
-    "Cloud storage provider is not configured. Media direct upload requires a configured storage provider.",
-    501,
-    ["STORAGE_PROVIDER_NOT_CONFIGURED"]
-  );
+  // In Real Mode: Send file to backend /api/media/upload multipart endpoint
+  try {
+    const formData = new FormData();
+    if (file instanceof Blob || (typeof File !== "undefined" && file instanceof File)) {
+      formData.append("file", file);
+    } else if (typeof file === "string") {
+      formData.append("url", file);
+    }
+    if (category) {
+      formData.append("category", category);
+    }
+
+    const res = await apiClient.post("/api/media/upload", formData);
+    const data = res?.data || res;
+    return {
+      url: data?.url || data?.secure_url || data?.path,
+      thumbnailUrl: data?.thumbnailUrl || data?.url,
+      mimeType: data?.mimeType || data?.format,
+      fileSizeBytes: data?.fileSizeBytes || data?.bytes || 0,
+      publicId: data?.publicId || data?.public_id,
+    };
+  } catch (err) {
+    throw new ApiError(
+      err?.message || "Failed to upload media file.",
+      err?.status || 500,
+      err?.errors || []
+    );
+  }
 }
 
 export default uploadMedia;

@@ -1,6 +1,12 @@
 "use client";
 
 import React, { createContext, useContext, useReducer, useEffect, useState, useMemo } from "react";
+import { isRealMode } from "@/lib/api/config";
+import { publicService } from "@/lib/api/services/publicService";
+import { recruiterService } from "@/lib/api/services/recruiterService";
+import { talentService } from "@/lib/api/services/talentService";
+import { adminService } from "@/lib/api/services/adminService";
+import { notificationService } from "@/lib/api/services/notificationService";
 
 // LocalStorage Persistence Key
 const STORAGE_KEY = "vismaya_workflow_store_v2";
@@ -2156,41 +2162,71 @@ export function WorkflowProvider({ children }) {
   const [state, dispatch] = useReducer(workflowReducer, defaultWorkflowState);
   const [isHydrated, setIsHydrated] = useState(false);
 
-  // SSR-safe hydration from localStorage on mount
+  // SSR-safe hydration from localStorage on mount (and live API sync when real mode is active)
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed && typeof parsed === "object") {
-          const existingIds = new Set((parsed.opportunities || []).map((o) => o.id));
-          const missingOpps = initialOpportunities.filter((o) => !existingIds.has(o.id));
-          const mergedOpps = missingOpps.length > 0 ? [...(parsed.opportunities || []), ...missingOpps] : parsed.opportunities;
+    let mounted = true;
 
-          const existingProjIds = new Set((parsed.projects || []).map((p) => p.id));
-          const missingProjs = initialProjects.filter((p) => !existingProjIds.has(p.id));
-          const mergedProjs = missingProjs.length > 0 ? [...(parsed.projects || []), ...missingProjs] : parsed.projects;
-
-          const existingBcIds = new Set((parsed.broadcasts || []).map((b) => b.id));
-          const missingBcs = initialBroadcasts.filter((b) => !existingBcIds.has(b.id));
-          const mergedBcs = missingBcs.length > 0 ? [...(parsed.broadcasts || []), ...missingBcs] : (parsed.broadcasts || initialBroadcasts);
-
-          dispatch({
-            type: "HYDRATE_STATE",
-            payload: {
-              ...parsed,
-              opportunities: mergedOpps,
-              projects: mergedProjs,
-              broadcasts: mergedBcs,
-            },
-          });
+    async function initStore() {
+      // 1. If in Real Mode, try fetching live published opportunities
+      if (isRealMode("opportunities")) {
+        try {
+          const oppsRes = await publicService.getPublishedOpportunities();
+          if (mounted && oppsRes?.data && Array.isArray(oppsRes.data) && oppsRes.data.length > 0) {
+            dispatch({
+              type: "HYDRATE_STATE",
+              payload: {
+                ...defaultWorkflowState,
+                opportunities: oppsRes.data,
+              },
+            });
+            setIsHydrated(true);
+            return;
+          }
+        } catch (err) {
+          console.warn("Real opportunities fetch failed, using local/seed store:", err);
         }
       }
-    } catch (err) {
-      console.warn("WorkflowStore hydration failed, falling back to default seed:", err);
-    } finally {
-      setIsHydrated(true);
+
+      // 2. Mock mode / fallback local storage hydration
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed && typeof parsed === "object") {
+            const existingIds = new Set((parsed.opportunities || []).map((o) => o.id));
+            const missingOpps = initialOpportunities.filter((o) => !existingIds.has(o.id));
+            const mergedOpps = missingOpps.length > 0 ? [...(parsed.opportunities || []), ...missingOpps] : parsed.opportunities;
+
+            const existingProjIds = new Set((parsed.projects || []).map((p) => p.id));
+            const missingProjs = initialProjects.filter((p) => !existingProjIds.has(p.id));
+            const mergedProjs = missingProjs.length > 0 ? [...(parsed.projects || []), ...missingProjs] : parsed.projects;
+
+            const existingBcIds = new Set((parsed.broadcasts || []).map((b) => b.id));
+            const missingBcs = initialBroadcasts.filter((b) => !existingBcIds.has(b.id));
+            const mergedBcs = missingBcs.length > 0 ? [...(parsed.broadcasts || []), ...missingBcs] : (parsed.broadcasts || initialBroadcasts);
+
+            dispatch({
+              type: "HYDRATE_STATE",
+              payload: {
+                ...parsed,
+                opportunities: mergedOpps,
+                projects: mergedProjs,
+                broadcasts: mergedBcs,
+              },
+            });
+          }
+        }
+      } catch (err) {
+        console.warn("WorkflowStore hydration failed, falling back to default seed:", err);
+      } finally {
+        if (mounted) setIsHydrated(true);
+      }
     }
+
+    initStore();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   // Periodic timer to auto-send scheduled broadcasts when time passes
@@ -2202,7 +2238,7 @@ export function WorkflowProvider({ children }) {
     return () => clearInterval(interval);
   }, [isHydrated]);
 
-  // Persist state to localStorage whenever state changes after hydration
+  // Persist state to localStorage whenever state changes after hydration (mock mode only)
   useEffect(() => {
     if (!isHydrated) return;
     try {
@@ -2226,7 +2262,18 @@ export function WorkflowProvider({ children }) {
   }, []);
 
   // Action Dispatchers
-  const createProject = (projectData) => {
+  const createProject = async (projectData) => {
+    if (isRealMode("recruiter")) {
+      try {
+        const res = await recruiterService.createProject(projectData);
+        if (res?.data) {
+          dispatch({ type: "CREATE_PROJECT", payload: res.data });
+          return res.data;
+        }
+      } catch (err) {
+        console.warn("Real createProject failed:", err);
+      }
+    }
     dispatch({ type: "CREATE_PROJECT", payload: projectData });
   };
 
@@ -2234,27 +2281,73 @@ export function WorkflowProvider({ children }) {
     dispatch({ type: "MARK_PROJECT_COMPLETED", payload: { projectId } });
   };
 
-  const submitOpportunity = (opportunityData) => {
+  const submitOpportunity = async (opportunityData) => {
+    if (isRealMode("recruiter")) {
+      try {
+        const res = await recruiterService.createOpportunity(opportunityData);
+        if (res?.data) {
+          dispatch({ type: "SUBMIT_OPPORTUNITY", payload: res.data });
+          return res.data;
+        }
+      } catch (err) {
+        console.warn("Real submitOpportunity failed:", err);
+      }
+    }
     dispatch({ type: "SUBMIT_OPPORTUNITY", payload: opportunityData });
   };
 
-  const adminApproveAndPublish = (opportunityId, adminNote) => {
+  const adminApproveAndPublish = async (opportunityId, adminNote) => {
+    if (isRealMode("admin")) {
+      try {
+        await adminService.reviewOpportunity(opportunityId, { status: "Published", adminNote });
+      } catch (err) {
+        console.warn("Real adminApproveAndPublish failed:", err);
+      }
+    }
     dispatch({ type: "ADMIN_APPROVE_AND_PUBLISH", payload: { opportunityId, adminNote } });
   };
 
-  const adminRequestChanges = (opportunityId, note) => {
+  const adminRequestChanges = async (opportunityId, note) => {
+    if (isRealMode("admin")) {
+      try {
+        await adminService.reviewOpportunity(opportunityId, { status: "Changes Requested", adminNote: note });
+      } catch (err) {
+        console.warn("Real adminRequestChanges failed:", err);
+      }
+    }
     dispatch({ type: "ADMIN_REQUEST_CHANGES", payload: { opportunityId, note } });
   };
 
-  const adminReject = (opportunityId, reason) => {
+  const adminReject = async (opportunityId, reason) => {
+    if (isRealMode("admin")) {
+      try {
+        await adminService.reviewOpportunity(opportunityId, { status: "Rejected", adminNote: reason });
+      } catch (err) {
+        console.warn("Real adminReject failed:", err);
+      }
+    }
     dispatch({ type: "ADMIN_REJECT", payload: { opportunityId, reason } });
   };
 
-  const requestCancellation = (opportunityId, reason) => {
+  const requestCancellation = async (opportunityId, reason) => {
+    if (isRealMode("recruiter")) {
+      try {
+        await recruiterService.requestCancellation(opportunityId, { reason });
+      } catch (err) {
+        console.warn("Real requestCancellation failed:", err);
+      }
+    }
     dispatch({ type: "REQUEST_CANCELLATION", payload: { opportunityId, reason } });
   };
 
-  const adminResolveCancellation = (requestId, decision, adminNote) => {
+  const adminResolveCancellation = async (requestId, decision, adminNote) => {
+    if (isRealMode("admin")) {
+      try {
+        await adminService.resolveCancellation(requestId, { decision, adminNote });
+      } catch (err) {
+        console.warn("Real adminResolveCancellation failed:", err);
+      }
+    }
     dispatch({ type: "ADMIN_RESOLVE_CANCELLATION", payload: { requestId, decision, adminNote } });
   };
 
@@ -2262,18 +2355,49 @@ export function WorkflowProvider({ children }) {
     dispatch({ type: "MARK_OPPORTUNITY_COMPLETED", payload: { opportunityId } });
   };
 
-  const applyToOpportunity = ({ opportunityId, talentId, talentProfile, roleApplied }) => {
+  const applyToOpportunity = async ({ opportunityId, talentId, talentProfile, roleApplied }) => {
+    if (isRealMode("applications")) {
+      try {
+        const res = await talentService.applyToOpportunity(opportunityId, {
+          roleName: roleApplied,
+          notes: talentProfile?.bio,
+        });
+        if (res?.data) {
+          dispatch({
+            type: "APPLY_TO_OPPORTUNITY",
+            payload: { opportunityId, talentId, talentProfile, roleApplied, ...res.data },
+          });
+          return res.data;
+        }
+      } catch (err) {
+        console.warn("Real applyToOpportunity failed:", err);
+      }
+    }
     dispatch({
       type: "APPLY_TO_OPPORTUNITY",
       payload: { opportunityId, talentId, talentProfile, roleApplied },
     });
   };
 
-  const withdrawApplication = (applicationId, reason) => {
+  const withdrawApplication = async (applicationId, reason) => {
+    if (isRealMode("applications")) {
+      try {
+        await talentService.withdrawApplication(applicationId);
+      } catch (err) {
+        console.warn("Real withdrawApplication failed:", err);
+      }
+    }
     dispatch({ type: "WITHDRAW_APPLICATION", payload: { applicationId, reason } });
   };
 
-  const setApplicationStatus = (applicationId, newStatus, note, changedBy) => {
+  const setApplicationStatus = async (applicationId, newStatus, note, changedBy) => {
+    if (isRealMode("recruiter")) {
+      try {
+        await recruiterService.updateCandidateStatus(applicationId, newStatus);
+      } catch (err) {
+        console.warn("Real setApplicationStatus failed:", err);
+      }
+    }
     dispatch({
       type: "SET_APPLICATION_STATUS",
       payload: { applicationId, newStatus, note, changedBy },
@@ -2284,39 +2408,110 @@ export function WorkflowProvider({ children }) {
     dispatch({ type: "OPEN_APPLICATION", payload: { applicationId } });
   };
 
-  const requestAudition = ({ applicationId, type, note }) => {
+  const requestAudition = async ({ applicationId, type, note }) => {
+    if (isRealMode("recruiter")) {
+      try {
+        await recruiterService.requestAudition(applicationId, { type, notes: note });
+      } catch (err) {
+        console.warn("Real requestAudition failed:", err);
+      }
+    }
     dispatch({ type: "REQUEST_AUDITION", payload: { applicationId, type, note } });
   };
 
-  const adminRelayAudition = (auditionId, note) => {
+  const adminRelayAudition = async (auditionId, note) => {
+    if (isRealMode("admin")) {
+      try {
+        await adminService.relayAudition(auditionId, { notes: note });
+      } catch (err) {
+        console.warn("Real adminRelayAudition failed:", err);
+      }
+    }
     dispatch({ type: "ADMIN_RELAY_AUDITION", payload: { auditionId, note } });
   };
 
-  const submitSelfTape = (auditionId, selfTapeUrl, note) => {
+  const submitSelfTape = async (auditionId, selfTapeUrl, note) => {
+    if (isRealMode("talent")) {
+      try {
+        await talentService.submitSelfTape(auditionId, { selfTapeUrl, notes: note });
+      } catch (err) {
+        console.warn("Real submitSelfTape failed:", err);
+      }
+    }
     dispatch({ type: "SUBMIT_SELF_TAPE", payload: { auditionId, selfTapeUrl, note } });
   };
 
-  const adminForwardSelfTape = (auditionId, note) => {
+  const adminForwardSelfTape = async (auditionId, note) => {
+    if (isRealMode("admin")) {
+      try {
+        await adminService.forwardSelfTape(auditionId, { notes: note });
+      } catch (err) {
+        console.warn("Real adminForwardSelfTape failed:", err);
+      }
+    }
     dispatch({ type: "ADMIN_FORWARD_SELF_TAPE", payload: { auditionId, note } });
   };
 
-  const markNotificationRead = (notificationId) => {
+  const markNotificationRead = async (notificationId) => {
+    if (isRealMode("notifications")) {
+      try {
+        await notificationService.markAsRead(notificationId);
+      } catch (err) {
+        console.warn("Real markNotificationRead failed:", err);
+      }
+    }
     dispatch({ type: "MARK_NOTIFICATION_READ", payload: { notificationId } });
   };
 
-  const markAllNotificationsRead = (role, userId) => {
+  const markAllNotificationsRead = async (role, userId) => {
+    if (isRealMode("notifications")) {
+      try {
+        await notificationService.markAllAsRead();
+      } catch (err) {
+        console.warn("Real markAllNotificationsRead failed:", err);
+      }
+    }
     dispatch({ type: "MARK_ALL_NOTIFICATIONS_READ", payload: { role, userId } });
   };
 
-  const sendBroadcast = (broadcastData) => {
+  const sendBroadcast = async (broadcastData) => {
+    if (isRealMode("admin")) {
+      try {
+        const res = await adminService.createBroadcast(broadcastData);
+        if (res?.data) {
+          dispatch({ type: "SEND_BROADCAST", payload: res.data });
+          return res.data;
+        }
+      } catch (err) {
+        console.warn("Real sendBroadcast failed:", err);
+      }
+    }
     dispatch({ type: "SEND_BROADCAST", payload: broadcastData });
   };
 
-  const saveBroadcastDraft = (draftData) => {
+  const saveBroadcastDraft = async (draftData) => {
+    if (isRealMode("admin")) {
+      try {
+        const res = await adminService.saveBroadcastDraft(draftData);
+        if (res?.data) {
+          dispatch({ type: "SAVE_BROADCAST_DRAFT", payload: res.data });
+          return res.data;
+        }
+      } catch (err) {
+        console.warn("Real saveBroadcastDraft failed:", err);
+      }
+    }
     dispatch({ type: "SAVE_BROADCAST_DRAFT", payload: draftData });
   };
 
-  const cancelScheduledBroadcast = (broadcastId) => {
+  const cancelScheduledBroadcast = async (broadcastId) => {
+    if (isRealMode("admin")) {
+      try {
+        await adminService.cancelBroadcast(broadcastId);
+      } catch (err) {
+        console.warn("Real cancelScheduledBroadcast failed:", err);
+      }
+    }
     dispatch({ type: "CANCEL_SCHEDULED_BROADCAST", payload: { broadcastId } });
   };
 

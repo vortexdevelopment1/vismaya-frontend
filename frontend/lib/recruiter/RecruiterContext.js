@@ -1,6 +1,4 @@
-"use client";
-
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 import {
   initialCompanyProfile,
   initialRequirements,
@@ -8,6 +6,9 @@ import {
   initialRecruiterNotifications,
   initialRecentActivity,
 } from "./mockData";
+import { isRealMode } from "@/lib/api/config";
+import { recruiterService } from "@/lib/api/services/recruiterService";
+import { notificationService } from "@/lib/api/services/notificationService";
 
 const RecruiterContext = createContext(null);
 
@@ -30,6 +31,41 @@ export function RecruiterProvider({ children }) {
   // 6. Toasts State
   const [toasts, setToasts] = useState([]);
 
+  // Fetch real recruiter data on mount when in real API mode
+  useEffect(() => {
+    if (!isRealMode("recruiter")) return;
+
+    let mounted = true;
+    async function loadRecruiterData() {
+      try {
+        const [orgRes, oppsRes, notifRes] = await Promise.allSettled([
+          recruiterService.getMyOrganization(),
+          recruiterService.getOpportunities(),
+          notificationService.getNotifications(),
+        ]);
+
+        if (mounted) {
+          if (orgRes.status === "fulfilled" && orgRes.value?.data) {
+            setCompanyProfile((prev) => ({ ...prev, ...orgRes.value.data }));
+          }
+          if (oppsRes.status === "fulfilled" && Array.isArray(oppsRes.value?.data)) {
+            setRequirements(oppsRes.value.data);
+          }
+          if (notifRes.status === "fulfilled" && Array.isArray(notifRes.value?.data)) {
+            setNotifications(notifRes.value.data);
+          }
+        }
+      } catch (err) {
+        console.warn("Failed to load recruiter data in real mode:", err);
+      }
+    }
+
+    loadRecruiterData();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   // Toast Helpers
   const addToast = ({ type = "success", title, message, duration = 4000 }) => {
     const id = "toast_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4);
@@ -47,8 +83,32 @@ export function RecruiterProvider({ children }) {
   };
 
   // Requirement Actions
-  const addRequirement = (reqData, isDraft = false) => {
-    // // TODO: API - POST /api/recruiter/requirements
+  const addRequirement = async (reqData, isDraft = false) => {
+    if (isRealMode("recruiter")) {
+      try {
+        const res = await recruiterService.createOpportunity(reqData);
+        const createdReq = res?.data || reqData;
+        setRequirements((prev) => [createdReq, ...prev]);
+
+        addToast({
+          type: isDraft ? "info" : "success",
+          title: isDraft ? "Draft Saved" : "Requirement Submitted to Admin",
+          message: isDraft
+            ? `"${createdReq.title}" saved to your drafts.`
+            : `"${createdReq.title}" is queued for Admin review and will be published soon.`,
+        });
+
+        return createdReq;
+      } catch (err) {
+        addToast({
+          type: "danger",
+          title: "Submission Failed",
+          message: err?.message || "Could not submit casting requirement.",
+        });
+        throw err;
+      }
+    }
+
     const newId = "req-" + Date.now().toString().slice(-4);
     const newReq = {
       id: newId,
@@ -129,8 +189,20 @@ export function RecruiterProvider({ children }) {
     return newReq;
   };
 
-  const updateRequirement = (id, updatedData) => {
-    // // TODO: API - PUT /api/recruiter/requirements/:id
+  const updateRequirement = async (id, updatedData) => {
+    if (isRealMode("recruiter")) {
+      try {
+        await recruiterService.updateOpportunity(id, updatedData);
+      } catch (err) {
+        addToast({
+          type: "danger",
+          title: "Update Failed",
+          message: err?.message || "Could not update requirement.",
+        });
+        throw err;
+      }
+    }
+
     setRequirements((prev) =>
       prev.map((r) => (r.id === id ? { ...r, ...updatedData } : r))
     );
@@ -142,8 +214,20 @@ export function RecruiterProvider({ children }) {
     });
   };
 
-  const deleteRequirement = (id) => {
-    // // TODO: API - DELETE /api/recruiter/requirements/:id
+  const deleteRequirement = async (id) => {
+    if (isRealMode("recruiter")) {
+      try {
+        await recruiterService.deleteOpportunity(id);
+      } catch (err) {
+        addToast({
+          type: "danger",
+          title: "Delete Failed",
+          message: err?.message || "Could not delete requirement.",
+        });
+        throw err;
+      }
+    }
+
     const target = requirements.find((r) => r.id === id);
     setRequirements((prev) => prev.filter((r) => r.id !== id));
 
@@ -155,8 +239,15 @@ export function RecruiterProvider({ children }) {
   };
 
   // Candidate Selection & Rating Feedback
-  const setCandidatePreference = ({ reqId, candidateId, selectionStatus, starRating }) => {
-    // // TODO: API - PATCH /api/recruiter/shortlists/:reqId/candidate/:candidateId
+  const setCandidatePreference = async ({ reqId, candidateId, selectionStatus, starRating }) => {
+    if (isRealMode("recruiter") && selectionStatus) {
+      try {
+        await recruiterService.updateCandidateStatus(candidateId, selectionStatus);
+      } catch (err) {
+        console.warn("Failed to update candidate status in real mode:", err);
+      }
+    }
+
     setShortlistedTalent((prev) => {
       const currentList = prev[reqId] || [];
       const updatedList = currentList.map((cand) => {
@@ -175,7 +266,6 @@ export function RecruiterProvider({ children }) {
 
   // Send Feedback to Admin and Lock Preferences
   const sendFeedbackToAdmin = (reqId) => {
-    // // TODO: API - POST /api/recruiter/shortlists/:reqId/feedback
     setRequirements((prev) =>
       prev.map((r) => (r.id === reqId ? { ...r, shortlistFeedbackSent: true } : r))
     );
@@ -204,15 +294,29 @@ export function RecruiterProvider({ children }) {
   };
 
   // Notification Actions
-  const markAsRead = (id) => {
-    // // TODO: API - PATCH /api/recruiter/notifications/:id/read
+  const markAsRead = async (id) => {
+    if (isRealMode("notifications")) {
+      try {
+        await notificationService.markAsRead(id);
+      } catch (err) {
+        console.warn("Failed to mark notification as read:", err);
+      }
+    }
+
     setNotifications((prev) =>
       prev.map((n) => (n.id === id ? { ...n, read: true } : n))
     );
   };
 
-  const markAllAsRead = () => {
-    // // TODO: API - POST /api/recruiter/notifications/mark-all-read
+  const markAllAsRead = async () => {
+    if (isRealMode("notifications")) {
+      try {
+        await notificationService.markAllAsRead();
+      } catch (err) {
+        console.warn("Failed to mark all notifications as read:", err);
+      }
+    }
+
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
 
     addToast({
@@ -223,9 +327,26 @@ export function RecruiterProvider({ children }) {
   };
 
   // Company Profile Actions
-  const updateCompanyProfile = (updatedFields) => {
-    // // TODO: API - PUT /api/recruiter/profile
-    setCompanyProfile((prev) => ({ ...prev, ...updatedFields }));
+  const updateCompanyProfile = async (updatedFields) => {
+    if (isRealMode("recruiter")) {
+      try {
+        const res = await recruiterService.updateOrganization(updatedFields);
+        if (res?.data) {
+          setCompanyProfile((prev) => ({ ...prev, ...res.data }));
+        } else {
+          setCompanyProfile((prev) => ({ ...prev, ...updatedFields }));
+        }
+      } catch (err) {
+        addToast({
+          type: "danger",
+          title: "Profile Update Failed",
+          message: err?.message || "Could not update company profile.",
+        });
+        throw err;
+      }
+    } else {
+      setCompanyProfile((prev) => ({ ...prev, ...updatedFields }));
+    }
 
     addToast({
       type: "success",
