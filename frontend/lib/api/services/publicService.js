@@ -6,6 +6,7 @@
 import { apiClient } from "../client.js";
 import { isRealMode } from "../config.js";
 import { mapOpportunity, mapTalentProfile } from "../mappers/index.js";
+import { eliteTalentRoster } from "../../public/homeData.js";
 import { mockOpportunities } from "./mockSeedData.js";
 
 const defaultStats = {
@@ -66,7 +67,7 @@ export const publicService = {
     if (!isRealMode("talent")) {
       return {
         success: true,
-        data: [],
+        data: eliteTalentRoster.map(mapTalentProfile),
       };
     }
 
@@ -85,7 +86,7 @@ export const publicService = {
     if (!isRealMode("talent")) {
       return {
         success: true,
-        data: [],
+        data: eliteTalentRoster.map(mapTalentProfile),
       };
     }
 
@@ -103,9 +104,10 @@ export const publicService = {
    */
   async getPublicTalentProfile(vismayaIdOrId) {
     if (!isRealMode("talent")) {
+      const found = eliteTalentRoster.find((t) => t.slug === vismayaIdOrId || t.name === vismayaIdOrId) || eliteTalentRoster[0];
       return {
         success: true,
-        data: null,
+        data: found ? mapTalentProfile(found) : null,
       };
     }
 
@@ -117,9 +119,7 @@ export const publicService = {
     };
   },
 
-  /**
-   * Fetch platform aggregate statistics for landing page
-   */
+  // CONTRACT-PENDING: Public landing page aggregate statistics
   async getPlatformStats() {
     if (!isRealMode("public")) {
       return {
@@ -147,6 +147,22 @@ export const publicService = {
     }
 
     const res = await apiClient.get("/api/success-stories");
+    return {
+      success: true,
+      data: res?.data || res,
+    };
+  },
+
+  // CONTRACT-PENDING: Public contact inquiry submission
+  async submitContactForm(payload) {
+    if (!isRealMode("public")) {
+      return {
+        success: true,
+        message: "Message received. Our production support team will contact you within 24 hours. (Mock)",
+      };
+    }
+
+    const res = await apiClient.post("/api/contact", payload);
     return {
       success: true,
       data: res?.data || res,

@@ -9,6 +9,12 @@
 
 import { toFrontendStatus, toBackendStatus } from "../statusMapper.js";
 
+function safeIsoDate(val, fallback = null) {
+  if (!val) return fallback;
+  const d = new Date(val);
+  return !isNaN(d.getTime()) ? d.toISOString() : (typeof val === "string" ? val : fallback);
+}
+
 export function fromApi(opp) {
   if (!opp) return null;
 
@@ -23,11 +29,8 @@ export function fromApi(opp) {
   // Format deadline date as YYYY-MM-DD
   let deadlineFormatted = "";
   if (opp.deadline) {
-    try {
-      deadlineFormatted = new Date(opp.deadline).toISOString().split("T")[0];
-    } catch {
-      deadlineFormatted = String(opp.deadline);
-    }
+    const iso = safeIsoDate(opp.deadline);
+    deadlineFormatted = iso ? iso.split("T")[0] : String(opp.deadline);
   }
 
   // Normalize Roles: support both backend single role and target roles[]
@@ -111,9 +114,9 @@ export function fromApi(opp) {
     rejectionReason: opp.rejectionReason || "",
     correctionNotes: opp.correctionNotes || "",
     cancellationReason: opp.cancellationReason || "",
-    cancellationRequestedAt: opp.cancellationRequestedAt ? new Date(opp.cancellationRequestedAt).toISOString() : null,
-    createdAt: opp.createdAt ? new Date(opp.createdAt).toISOString() : new Date().toISOString(),
-    publishedAt: opp.publishedAt ? new Date(opp.publishedAt).toISOString() : null,
+    cancellationRequestedAt: safeIsoDate(opp.cancellationRequestedAt, null),
+    createdAt: safeIsoDate(opp.createdAt, new Date().toISOString()),
+    publishedAt: safeIsoDate(opp.publishedAt, null),
   };
 }
 

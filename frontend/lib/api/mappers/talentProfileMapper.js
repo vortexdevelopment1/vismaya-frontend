@@ -4,6 +4,12 @@
  * Maps between backend TalentProfile nested schema and frontend UI components.
  */
 
+function safeIsoDate(val, fallback = null) {
+  if (!val) return fallback;
+  const d = new Date(val);
+  return !isNaN(d.getTime()) ? d.toISOString() : (typeof val === "string" ? val : fallback);
+}
+
 export function fromApi(profile) {
   if (!profile) return null;
 
@@ -71,7 +77,7 @@ export function fromApi(profile) {
     },
     profilePhoto: profile.profilePhoto || profile.avatar || photosList[0] || "",
     avatar: profile.profilePhoto || profile.avatar || photosList[0] || "",
-    dob: profile.dob ? new Date(profile.dob).toISOString().split("T")[0] : (profile.personal?.dob || ""),
+    dob: safeIsoDate(profile.dob, profile.personal?.dob || "") ? safeIsoDate(profile.dob, profile.personal?.dob || "").split("T")[0] : (profile.personal?.dob || ""),
     gender: profile.gender || profile.personal?.gender || "prefer_not_to_say",
     nationality: profile.nationality || "Indian",
     careerStage: profile.careerStage || "aspiring",

@@ -6,6 +6,12 @@
 
 import { toFrontendStatus, toBackendStatus } from "../statusMapper.js";
 
+function safeIsoDate(val, fallback = null) {
+  if (!val) return fallback;
+  const d = new Date(val);
+  return !isNaN(d.getTime()) ? d.toISOString() : (typeof val === "string" ? val : fallback);
+}
+
 export function fromApi(b) {
   if (!b) return null;
 
@@ -16,18 +22,18 @@ export function fromApi(b) {
     _id: id,
     title: b.title || "Untitled Broadcast",
     message: b.message || "",
-    targetAudience: b.targetAudience || "all",
-    channels: Array.isArray(b.channels) ? b.channels : ["in_app"],
+    targetAudience: b.targetAudience || b.audience || "all",
+    channels: Array.isArray(b.channels) ? b.channels : (b.channel ? [b.channel] : ["in_app"]),
     priority: b.priority || "normal",
     status: toFrontendStatus("broadcast", b.status || "draft"),
     rawStatus: b.status || "draft",
-    scheduledAt: b.scheduledAt ? new Date(b.scheduledAt).toISOString() : null,
-    sentAt: b.sentAt ? new Date(b.sentAt).toISOString() : null,
+    scheduledAt: safeIsoDate(b.scheduledAt, null),
+    sentAt: safeIsoDate(b.sentAt, typeof b.sentAt === "string" ? b.sentAt : null),
     stats: {
-      reachCount: Number(b.stats?.reachCount) || 0,
+      reachCount: Number(b.stats?.reachCount || b.recipientsCount) || 0,
       readCount: Number(b.stats?.readCount) || 0,
     },
-    createdAt: b.createdAt ? new Date(b.createdAt).toISOString() : new Date().toISOString(),
+    createdAt: safeIsoDate(b.createdAt, new Date().toISOString()),
   };
 }
 

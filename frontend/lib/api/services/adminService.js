@@ -12,6 +12,18 @@ import {
   mapBroadcast,
 } from "../mappers/index.js";
 import {
+  initialTalents,
+  initialRecruiters,
+  initialRequirementRequests,
+  initialCastingCalls,
+  initialApplications,
+  initialMediaQueue,
+  initialPayments,
+  initialBroadcasts,
+  initialRecentAdminActivity,
+  initialAnalyticsData,
+} from "../../admin/mockData.js";
+import {
   mockTalents,
   mockRecruiters,
   mockOpportunities,
@@ -25,7 +37,7 @@ export const adminService = {
    */
   async getAllUsers(params = {}) {
     if (!isRealMode("admin")) {
-      const all = [...mockTalents, ...mockRecruiters];
+      const all = [...initialTalents, ...initialRecruiters];
       return {
         success: true,
         data: all.map(mapUser),
@@ -45,7 +57,9 @@ export const adminService = {
    */
   async getPendingUsers() {
     if (!isRealMode("admin")) {
-      const pending = [...mockTalents, ...mockRecruiters].filter((u) => u.status === "Pending");
+      const pending = [...initialTalents, ...initialRecruiters].filter(
+        (u) => (u.status || "").toLowerCase() === "pending"
+      );
       return {
         success: true,
         data: pending.map(mapUser),
@@ -147,10 +161,9 @@ export const adminService = {
    */
   async getPendingOpportunities() {
     if (!isRealMode("admin")) {
-      const pending = mockOpportunities.filter((o) => o.status === "Submitted" || o.status === "Changes Requested");
       return {
         success: true,
-        data: pending.map(mapOpportunity),
+        data: initialRequirementRequests.map(mapOpportunity),
       };
     }
 
@@ -295,15 +308,7 @@ export const adminService = {
     if (!isRealMode("admin")) {
       return {
         success: true,
-        data: [
-          {
-            id: "log-1",
-            action: "OPPORTUNITY_APPROVED",
-            performedBy: "admin@vismaya.com",
-            target: "opp-101",
-            timestamp: new Date().toISOString(),
-          },
-        ],
+        data: initialRecentAdminActivity,
       };
     }
 
@@ -333,36 +338,224 @@ export const adminService = {
     };
   },
 
-  /**
-   * Fetch admin broadcasts
-   */
+  // CONTRACT-PENDING: Admin console aggregated metrics dashboard
+  async getDashboardStats() {
+    if (!isRealMode("admin")) {
+      return {
+        success: true,
+        data: initialAnalyticsData,
+      };
+    }
+
+    const res = await apiClient.get("/api/admin/dashboard");
+    return {
+      success: true,
+      data: res?.data || res,
+    };
+  },
+
+  // CONTRACT-PENDING: Admin platform-wide performance and engagement analytics
+  async getAnalytics(params = {}) {
+    if (!isRealMode("admin")) {
+      return {
+        success: true,
+        data: initialAnalyticsData,
+      };
+    }
+
+    const res = await apiClient.get("/api/admin/analytics", { params });
+    return {
+      success: true,
+      data: res?.data || res,
+    };
+  },
+
+  // CONTRACT-PENDING: Admin talent management directory list with filters
+  async listTalents(params = {}) {
+    if (!isRealMode("admin")) {
+      return {
+        success: true,
+        data: initialTalents.map(mapUser),
+      };
+    }
+
+    const res = await apiClient.get("/api/admin/talents", { params });
+    const docs = Array.isArray(res?.data) ? res.data : Array.isArray(res?.talents) ? res.talents : [];
+    return {
+      success: true,
+      data: docs.map(mapUser),
+    };
+  },
+
+  // CONTRACT-PENDING: Admin recruiter / organization management directory list
+  async listOrganizations(params = {}) {
+    if (!isRealMode("admin")) {
+      return {
+        success: true,
+        data: initialRecruiters.map(mapUser),
+      };
+    }
+
+    const res = await apiClient.get("/api/admin/organizations", { params });
+    const docs = Array.isArray(res?.data) ? res.data : Array.isArray(res?.organizations) ? res.organizations : [];
+    return {
+      success: true,
+      data: docs.map(mapUser),
+    };
+  },
+
+  // CONTRACT-PENDING: Admin casting brief cancellation requests queue
+  async getCancellationRequests(params = {}) {
+    if (!isRealMode("admin")) {
+      return {
+        success: true,
+        data: initialRequirementRequests.map(mapOpportunity),
+      };
+    }
+
+    const res = await apiClient.get("/api/admin/cancellation-requests", { params });
+    const docs = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+    return {
+      success: true,
+      data: docs.map(mapOpportunity),
+    };
+  },
+
+  // CONTRACT-PENDING: Admin audition submissions relay queue
+  async getAuditionsForRelay(params = {}) {
+    if (!isRealMode("admin")) {
+      return {
+        success: true,
+        data: initialApplications,
+      };
+    }
+
+    const res = await apiClient.get("/api/admin/auditions", { params });
+    const docs = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+    return {
+      success: true,
+      data: docs,
+    };
+  },
+
+  // CONTRACT-PENDING: Admin relay audition request to talent
+  async relayAudition(auditionId, payload = {}) {
+    if (!isRealMode("admin")) {
+      return {
+        success: true,
+        message: "Audition relayed to talent (Mock)",
+      };
+    }
+
+    const res = await apiClient.patch(`/api/admin/auditions/${auditionId}/relay`, payload);
+    return {
+      success: true,
+      data: res?.data || res,
+    };
+  },
+
+  // CONTRACT-PENDING: Admin forward submitted self-tape to organization
+  async forwardAudition(auditionId, payload = {}) {
+    if (!isRealMode("admin")) {
+      return {
+        success: true,
+        message: "Self-tape forwarded to organization (Mock)",
+      };
+    }
+
+    const res = await apiClient.patch(`/api/admin/auditions/${auditionId}/forward`, payload);
+    return {
+      success: true,
+      data: res?.data || res,
+    };
+  },
+
+  // CONTRACT-PENDING: Admin media moderation queue
+  async getMediaForModeration(params = {}) {
+    if (!isRealMode("admin")) {
+      return {
+        success: true,
+        data: initialMediaQueue,
+      };
+    }
+
+    const res = await apiClient.get("/api/admin/media", { params });
+    const docs = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+    return {
+      success: true,
+      data: docs,
+    };
+  },
+
+  // CONTRACT-PENDING: Admin media item approval / rejection moderation decision
+  async moderateMedia(mediaId, payload = {}) {
+    if (!isRealMode("admin")) {
+      return {
+        success: true,
+        message: `Media ${payload.status || "moderated"} (Mock)`,
+      };
+    }
+
+    const res = await apiClient.patch(`/api/admin/media/${mediaId}/moderate`, payload);
+    return {
+      success: true,
+      data: res?.data || res,
+    };
+  },
+
+  // CONTRACT-PENDING: Admin live system activity stream
+  async getSystemFeed() {
+    if (!isRealMode("admin")) {
+      return {
+        success: true,
+        data: initialRecentAdminActivity,
+      };
+    }
+
+    const res = await apiClient.get("/api/admin/system-feed");
+    const docs = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+    return {
+      success: true,
+      data: docs,
+    };
+  },
+
+  // CONTRACT-PENDING: Admin platform broadcasts list
   async getBroadcasts() {
     if (!isRealMode("admin")) {
       return {
         success: true,
-        data: mockBroadcasts.map(mapBroadcast),
+        data: initialBroadcasts.map(mapBroadcast),
       };
     }
 
-    try {
-      const res = await apiClient.get("/api/admin/broadcasts");
-      const docs = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
-      return {
-        success: true,
-        data: docs.map(mapBroadcast),
-      };
-    } catch {
-      return {
-        success: true,
-        data: mockBroadcasts.map(mapBroadcast),
-      };
-    }
+    const res = await apiClient.get("/api/admin/broadcasts");
+    const docs = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+    return {
+      success: true,
+      data: docs.map(mapBroadcast),
+    };
   },
 
-  /**
-   * Send or schedule an admin broadcast
-   * @param {Object} payload
-   */
+  // CONTRACT-PENDING: Admin single broadcast detail
+  async getBroadcastById(broadcastId) {
+    if (!isRealMode("admin")) {
+      const bc = initialBroadcasts.find((b) => b.id === broadcastId) || initialBroadcasts[0];
+      return {
+        success: true,
+        data: mapBroadcast(bc),
+      };
+    }
+
+    const res = await apiClient.get(`/api/admin/broadcasts/${broadcastId}`);
+    const doc = res?.data || res;
+    return {
+      success: true,
+      data: doc ? mapBroadcast(doc) : null,
+    };
+  },
+
+  // CONTRACT-PENDING: Admin broadcast creation & dispatch
   async sendBroadcast(payload) {
     if (!isRealMode("admin")) {
       const newBc = {
@@ -382,6 +575,56 @@ export const adminService = {
     return {
       success: true,
       data: doc ? mapBroadcast(doc) : mapBroadcast(payload),
+    };
+  },
+
+  // CONTRACT-PENDING: Admin broadcast update
+  async updateBroadcast(broadcastId, payload) {
+    if (!isRealMode("admin")) {
+      return {
+        success: true,
+        data: mapBroadcast({ id: broadcastId, ...payload }),
+      };
+    }
+
+    const res = await apiClient.patch(`/api/admin/broadcasts/${broadcastId}`, payload);
+    const doc = res?.data || res;
+    return {
+      success: true,
+      data: doc ? mapBroadcast(doc) : null,
+    };
+  },
+
+  // CONTRACT-PENDING: Admin broadcast deletion
+  async deleteBroadcast(broadcastId) {
+    if (!isRealMode("admin")) {
+      return {
+        success: true,
+        message: "Broadcast deleted (Mock)",
+      };
+    }
+
+    const res = await apiClient.delete(`/api/admin/broadcasts/${broadcastId}`);
+    return {
+      success: true,
+      data: res?.data || res,
+    };
+  },
+
+  // CONTRACT-PENDING: Admin broadcast target audience reach estimation
+  async getBroadcastReach(target = "all") {
+    if (!isRealMode("admin")) {
+      const reachMap = { all: 18450, talent: 14200, recruiter: 4250 };
+      return {
+        success: true,
+        data: { target, estimatedReach: reachMap[target] || 18450 },
+      };
+    }
+
+    const res = await apiClient.get("/api/admin/broadcasts/reach", { params: { target } });
+    return {
+      success: true,
+      data: res?.data || res,
     };
   },
 };

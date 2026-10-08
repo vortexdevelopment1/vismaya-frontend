@@ -6,19 +6,11 @@
 import { apiClient } from "../client.js";
 import { isRealMode } from "../config.js";
 import { mapTalentProfile, mapTalentProfileToBackend, mapApplication, mapAudition } from "../mappers/index.js";
+import {
+  initialProfileData,
+  initialApplications,
+} from "../../talent/mockData.js";
 import { mockApplications, mockAuditions } from "./mockSeedData.js";
-
-const defaultMockProfile = {
-  id: "tal-904",
-  personal: {
-    name: "Aarav Sharma",
-    gender: "Male",
-    primarySkill: "Acting",
-    bio: "Trained method actor with 4+ years theatre and digital camera experience.",
-    city: "Mumbai",
-  },
-  status: "Approved",
-};
 
 export const talentService = {
   /**
@@ -28,7 +20,7 @@ export const talentService = {
     if (!isRealMode("talent")) {
       return {
         success: true,
-        data: mapTalentProfile(defaultMockProfile),
+        data: mapTalentProfile(initialProfileData),
       };
     }
 
@@ -48,7 +40,7 @@ export const talentService = {
     if (!isRealMode("talent")) {
       return {
         success: true,
-        data: mapTalentProfile({ ...defaultMockProfile, ...payload }),
+        data: mapTalentProfile({ ...initialProfileData, ...payload }),
       };
     }
 
@@ -113,7 +105,7 @@ export const talentService = {
     if (!isRealMode("applications")) {
       return {
         success: true,
-        data: mockApplications.map(mapApplication),
+        data: initialApplications.map(mapApplication),
       };
     }
 

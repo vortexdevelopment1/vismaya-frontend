@@ -2,6 +2,12 @@
  * Credit Entity Mapper
  */
 
+function safeIsoDate(val, fallback = null) {
+  if (!val) return fallback;
+  const d = new Date(val);
+  return !isNaN(d.getTime()) ? d.toISOString() : (typeof val === "string" ? val : fallback);
+}
+
 export function fromApiLedger(ledger) {
   if (!ledger) {
     return {
@@ -23,7 +29,7 @@ export function fromApiLedger(ledger) {
     consumedCredits: Number(ledger.consumedCredits) || 0,
     lowBalanceWarning: balance <= 10,
     warningMessage: balance <= 10 ? `Low balance alert: You have only ${balance} profile-view credits remaining.` : null,
-    lastTransactionAt: ledger.lastTransactionAt ? new Date(ledger.lastTransactionAt).toISOString() : null,
+    lastTransactionAt: safeIsoDate(ledger.lastTransactionAt, null),
   };
 }
 
@@ -31,6 +37,7 @@ export function fromApiTransaction(tx) {
   if (!tx) return null;
 
   const id = tx._id ? String(tx._id) : (tx.id ? String(tx.id) : "");
+  const createdIso = safeIsoDate(tx.createdAt, new Date().toISOString());
 
   return {
     id,
@@ -40,8 +47,8 @@ export function fromApiTransaction(tx) {
     balanceAfter: Number(tx.balanceAfter) || 0,
     description: tx.description || "",
     talentId: tx.talentId ? String(tx.talentId) : null,
-    createdAt: tx.createdAt ? new Date(tx.createdAt).toISOString() : new Date().toISOString(),
-    date: tx.createdAt ? new Date(tx.createdAt).toISOString().split("T")[0] : "",
+    createdAt: createdIso,
+    date: createdIso ? createdIso.split("T")[0] : "",
   };
 }
 

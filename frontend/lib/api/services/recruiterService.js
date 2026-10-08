@@ -14,6 +14,11 @@ import {
   mapCreditTransaction,
 } from "../mappers/index.js";
 import {
+  initialCompanyProfile,
+  initialRequirements,
+  initialShortlistedTalent,
+} from "../../recruiter/mockData.js";
+import {
   mockOrganizations,
   mockProjects,
   mockOpportunities,
@@ -29,7 +34,7 @@ export const recruiterService = {
     if (!isRealMode("recruiter")) {
       return {
         success: true,
-        data: mapOrganization(mockOrganizations[0]),
+        data: mapOrganization(initialCompanyProfile),
       };
     }
 
@@ -49,7 +54,7 @@ export const recruiterService = {
     if (!isRealMode("recruiter")) {
       return {
         success: true,
-        data: mapOrganization({ ...mockOrganizations[0], ...payload }),
+        data: mapOrganization({ ...initialCompanyProfile, ...payload }),
       };
     }
 
@@ -158,7 +163,7 @@ export const recruiterService = {
     if (!isRealMode("opportunities")) {
       return {
         success: true,
-        data: mockOpportunities.map(mapOpportunity),
+        data: initialRequirements.map(mapOpportunity),
       };
     }
 
@@ -223,10 +228,13 @@ export const recruiterService = {
    */
   async getOpportunityApplications(opportunityId) {
     if (!isRealMode("applications")) {
-      const filtered = mockApplications.filter((a) => a.opportunityId === opportunityId);
+      const shortlisted = initialShortlistedTalent[opportunityId] || [];
+      const apps = shortlisted.length > 0
+        ? shortlisted
+        : mockApplications.filter((a) => a.opportunityId === opportunityId || a.reqId === opportunityId);
       return {
         success: true,
-        data: filtered.map(mapApplication),
+        data: (apps.length > 0 ? apps : mockApplications).map(mapApplication),
       };
     }
 

@@ -4,6 +4,12 @@
 
 import { toFrontendStatus, toBackendStatus } from "../statusMapper.js";
 
+function safeIsoDate(val, fallback = null) {
+  if (!val) return fallback;
+  const d = new Date(val);
+  return !isNaN(d.getTime()) ? d.toISOString() : (typeof val === "string" ? val : fallback);
+}
+
 export function fromApi(audition) {
   if (!audition) return null;
 
@@ -37,8 +43,11 @@ export function fromApi(audition) {
     durationSeconds: audition.selfTapeSubmission.durationSeconds || null,
     fileSizeBytes: audition.selfTapeSubmission.fileSizeBytes || null,
     notes: audition.selfTapeSubmission.notes || "",
-    submittedAt: audition.selfTapeSubmission.submittedAt ? new Date(audition.selfTapeSubmission.submittedAt).toISOString() : null,
+    submittedAt: safeIsoDate(audition.selfTapeSubmission.submittedAt, null),
   } : null;
+
+  const schedIso = safeIsoDate(audition.scheduledAt, null);
+  const deadIso = safeIsoDate(audition.deadline, null);
 
   return {
     id,
@@ -61,9 +70,9 @@ export function fromApi(audition) {
     scriptUrl: audition.scriptUrl || "",
     meetingLink: audition.meetingLink || "",
     location: audition.location || "",
-    scheduledAt: audition.scheduledAt ? new Date(audition.scheduledAt).toISOString() : null,
-    scheduledDate: audition.scheduledAt ? new Date(audition.scheduledAt).toISOString().split("T")[0] : "",
-    deadline: audition.deadline ? new Date(audition.deadline).toISOString().split("T")[0] : "",
+    scheduledAt: schedIso,
+    scheduledDate: schedIso ? schedIso.split("T")[0] : (audition.scheduledDate || ""),
+    deadline: deadIso ? deadIso.split("T")[0] : (audition.deadline || ""),
     status: toFrontendStatus("audition", audition.status || "requested"),
     rawStatus: audition.status || "requested",
     selfTapeSubmission: selfTape,
@@ -72,8 +81,8 @@ export function fromApi(audition) {
     organizationFeedback: audition.organizationFeedback || "",
     rating: audition.organizationRating || null,
     organizationRating: audition.organizationRating || null,
-    reviewedAt: audition.reviewedAt ? new Date(audition.reviewedAt).toISOString() : null,
-    createdAt: audition.createdAt ? new Date(audition.createdAt).toISOString() : new Date().toISOString(),
+    reviewedAt: safeIsoDate(audition.reviewedAt, null),
+    createdAt: safeIsoDate(audition.createdAt, new Date().toISOString()),
   };
 }
 

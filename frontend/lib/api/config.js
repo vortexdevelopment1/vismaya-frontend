@@ -31,10 +31,11 @@ export const API_MODULES = rawModules
 
 /**
  * Checks whether a specific feature module should use the real backend API.
- * Returns false if global USE_MOCK is true.
- * If USE_MOCK is false, returns true if:
- *   - NEXT_PUBLIC_API_MODULES is empty, "*", or "all" (meaning all modules are real)
- *   - OR the specific module is included in NEXT_PUBLIC_API_MODULES
+ * Returns false if global USE_MOCK is true (default).
+ * If USE_MOCK is false, returns true ONLY if:
+ *   - NEXT_PUBLIC_API_MODULES is explicitly set to "*" or "all"
+ *   - OR the specific module is explicitly listed in NEXT_PUBLIC_API_MODULES
+ * An empty or missing NEXT_PUBLIC_API_MODULES means NO module is real.
  *
  * @param {string} moduleName - e.g. "auth", "public", "talent", "recruiter", "admin", "notifications", "uploads", "payments"
  * @returns {boolean}
@@ -46,16 +47,23 @@ export function isRealMode(moduleName) {
     : currentUseMock.toLowerCase() !== "false";
 
   if (isMock) return false;
-  if (!moduleName) return true;
 
   const currentModules = (process.env.NEXT_PUBLIC_API_MODULES || "").toLowerCase().trim();
   const modulesList = currentModules
     ? currentModules.split(",").map((m) => m.trim()).filter(Boolean)
     : [];
 
-  if (modulesList.length === 0 || modulesList.includes("*") || modulesList.includes("all")) {
+  // An empty or missing NEXT_PUBLIC_API_MODULES means NO module is real
+  if (modulesList.length === 0) {
+    return false;
+  }
+
+  if (modulesList.includes("*") || modulesList.includes("all")) {
     return true;
   }
+
+  if (!moduleName) return false;
+
   return modulesList.includes(moduleName.toLowerCase().trim());
 }
 

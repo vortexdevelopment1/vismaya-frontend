@@ -2,6 +2,12 @@
  * Notification Entity Mapper
  */
 
+function safeIsoDate(val, fallback = null) {
+  if (!val) return fallback;
+  const d = new Date(val);
+  return !isNaN(d.getTime()) ? d.toISOString() : (typeof val === "string" ? val : fallback);
+}
+
 export function fromApi(notif) {
   if (!notif) return null;
 
@@ -30,9 +36,11 @@ export function fromApi(notif) {
     referenceType: notif.referenceType || "System",
     isRead,
     read: isRead,
-    link,
-    readAt: notif.readAt ? new Date(notif.readAt).toISOString() : null,
-    createdAt: notif.createdAt ? new Date(notif.createdAt).toISOString() : new Date().toISOString(),
+    link: notif.actionHref || link,
+    badge: notif.badge,
+    time: notif.time,
+    readAt: safeIsoDate(notif.readAt, null),
+    createdAt: safeIsoDate(notif.createdAt || notif.time, new Date().toISOString()),
   };
 }
 

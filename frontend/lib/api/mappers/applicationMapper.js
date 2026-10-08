@@ -4,6 +4,12 @@
 
 import { toFrontendStatus, toBackendStatus } from "../statusMapper.js";
 
+function safeIsoDate(val, fallback = null) {
+  if (!val) return fallback;
+  const d = new Date(val);
+  return !isNaN(d.getTime()) ? d.toISOString() : (typeof val === "string" ? val : fallback);
+}
+
 export function fromApi(app) {
   if (!app) return null;
 
@@ -30,6 +36,8 @@ export function fromApi(app) {
       }))
     : [];
 
+  const createdIso = safeIsoDate(app.createdAt, new Date().toISOString());
+
   return {
     id,
     _id: id,
@@ -47,15 +55,15 @@ export function fromApi(app) {
     status: toFrontendStatus("application", app.status || "applied"),
     rawStatus: app.status || "applied",
     withdrawalReason: app.withdrawalReason || "",
-    withdrawnAt: app.withdrawnAt ? new Date(app.withdrawnAt).toISOString() : null,
+    withdrawnAt: safeIsoDate(app.withdrawnAt, null),
     reapplicationRequested: Boolean(app.reapplicationRequested),
     reapplicationRequestReason: app.reapplicationRequestReason || "",
     reapplicationApproved: Boolean(app.reapplicationApproved),
-    selectedAt: app.selectedAt ? new Date(app.selectedAt).toISOString() : null,
-    notSelectedAt: app.notSelectedAt ? new Date(app.notSelectedAt).toISOString() : null,
+    selectedAt: safeIsoDate(app.selectedAt, null),
+    notSelectedAt: safeIsoDate(app.notSelectedAt, null),
     notSelectedReason: app.notSelectedReason || "",
-    createdAt: app.createdAt ? new Date(app.createdAt).toISOString() : new Date().toISOString(),
-    appliedAt: app.createdAt ? new Date(app.createdAt).toISOString() : new Date().toISOString(),
+    createdAt: createdIso,
+    appliedAt: createdIso,
   };
 }
 

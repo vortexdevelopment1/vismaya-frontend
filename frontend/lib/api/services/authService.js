@@ -107,4 +107,59 @@ export const authService = {
     }
     return apiClient.post("/api/auth/reset-password", { email, otp, newPassword });
   },
+
+  // CONTRACT-PENDING: User self-service change password
+  async changePassword({ currentPassword, newPassword }) {
+    if (!isRealMode("auth")) {
+      return { success: true, message: "Password updated successfully (Mock)" };
+    }
+    return apiClient.post("/api/auth/change-password", { currentPassword, newPassword });
+  },
+
+  // CONTRACT-PENDING: Active login sessions list
+  async getSessions() {
+    if (!isRealMode("auth")) {
+      return {
+        success: true,
+        data: [
+          {
+            id: "sess_mock_1",
+            device: "Chrome on Windows 11",
+            ip: "127.0.0.1",
+            lastActive: new Date().toISOString(),
+            isCurrent: true,
+          },
+        ],
+      };
+    }
+    const res = await apiClient.get("/api/auth/sessions");
+    return {
+      success: true,
+      data: res?.data || res || [],
+    };
+  },
+
+  // CONTRACT-PENDING: Revoke specific login session
+  async revokeSession(sessionId) {
+    if (!isRealMode("auth")) {
+      return { success: true, message: "Session revoked (Mock)" };
+    }
+    return apiClient.delete(`/api/auth/sessions/${sessionId}`);
+  },
+
+  // CONTRACT-PENDING: Revoke all other login sessions
+  async revokeAllSessions() {
+    if (!isRealMode("auth")) {
+      return { success: true, message: "All other sessions revoked (Mock)" };
+    }
+    return apiClient.delete("/api/auth/sessions");
+  },
+
+  // CONTRACT-PENDING: Server-side token invalidation / logout
+  async logout() {
+    if (!isRealMode("auth")) {
+      return { success: true, message: "Logged out (Mock)" };
+    }
+    return apiClient.post("/api/auth/logout");
+  },
 };

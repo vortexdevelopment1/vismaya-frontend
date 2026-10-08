@@ -6,6 +6,7 @@
 import { apiClient } from "../client.js";
 import { isRealMode } from "../config.js";
 import { mapPayment } from "../mappers/index.js";
+import { initialPayments } from "../../admin/mockData.js";
 import { mockPayments } from "./mockSeedData.js";
 
 export const paymentService = {
@@ -68,7 +69,7 @@ export const paymentService = {
     if (!isRealMode("payments")) {
       return {
         success: true,
-        data: mockPayments.map(mapPayment),
+        data: initialPayments.map(mapPayment),
       };
     }
 

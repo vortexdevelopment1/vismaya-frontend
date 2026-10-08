@@ -7,6 +7,7 @@ import { apiClient } from "../client.js";
 import { isRealMode } from "../config.js";
 import { mapMedia } from "../mappers/index.js";
 import { uploadMedia } from "../uploadMedia.js";
+import { initialMediaQueue } from "../../admin/mockData.js";
 import { mockMediaQueue } from "./mockSeedData.js";
 
 export const mediaService = {
@@ -17,7 +18,7 @@ export const mediaService = {
     if (!isRealMode("media")) {
       return {
         success: true,
-        data: mockMediaQueue.map(mapMedia),
+        data: initialMediaQueue.map(mapMedia),
       };
     }
 
@@ -35,10 +36,10 @@ export const mediaService = {
    */
   async getUserMedia(userId) {
     if (!isRealMode("media")) {
-      const userMedia = mockMediaQueue.filter((m) => m.talentId === userId);
+      const userMedia = initialMediaQueue.filter((m) => m.talentId === userId || m.userId === userId);
       return {
         success: true,
-        data: userMedia.map(mapMedia),
+        data: (userMedia.length > 0 ? userMedia : initialMediaQueue).map(mapMedia),
       };
     }
 

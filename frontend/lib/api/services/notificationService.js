@@ -6,6 +6,7 @@
 import { apiClient } from "../client.js";
 import { isRealMode } from "../config.js";
 import { mapNotification } from "../mappers/index.js";
+import { initialNotifications } from "../../talent/mockData.js";
 import { mockNotifications } from "./mockSeedData.js";
 
 export const notificationService = {
@@ -16,7 +17,7 @@ export const notificationService = {
     if (!isRealMode("notifications")) {
       return {
         success: true,
-        data: mockNotifications.map(mapNotification),
+        data: initialNotifications.map(mapNotification),
       };
     }
 
@@ -33,7 +34,7 @@ export const notificationService = {
    */
   async getUnreadCount() {
     if (!isRealMode("notifications")) {
-      const count = mockNotifications.filter((n) => !n.read).length;
+      const count = initialNotifications.filter((n) => !n.read && !n.isRead).length;
       return {
         success: true,
         count,
