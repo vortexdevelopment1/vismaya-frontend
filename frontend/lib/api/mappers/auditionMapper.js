@@ -75,6 +75,12 @@ export function fromApi(audition) {
     deadline: deadIso ? deadIso.split("T")[0] : (audition.deadline || ""),
     status: toFrontendStatus("audition", audition.status || "requested"),
     rawStatus: audition.status || "requested",
+    vismayaApproval: audition.vismayaApproval ? {
+      status: audition.vismayaApproval.status || "pending",
+      reviewedAt: safeIsoDate(audition.vismayaApproval.reviewedAt, null),
+      reviewedBy: audition.vismayaApproval.reviewedBy || null,
+      adminNote: audition.vismayaApproval.adminNote || "",
+    } : null,
     selfTapeSubmission: selfTape,
     submission: selfTape,
     feedback: audition.organizationFeedback || "",

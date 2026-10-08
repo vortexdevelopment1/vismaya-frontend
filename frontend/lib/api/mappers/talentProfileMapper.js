@@ -158,6 +158,14 @@ export function fromApi(profile) {
     isUnder18: Boolean(profile.isUnder18),
     email: userEmail,
     mobile: userMobile,
+    socialLinks: {
+      instagram: profile.socialLinks?.instagram || "",
+      twitter: profile.socialLinks?.twitter || "",
+      youtube: profile.socialLinks?.youtube || "",
+      imdb: profile.socialLinks?.imdb || "",
+      website: profile.socialLinks?.website || "",
+      linkedin: profile.socialLinks?.linkedin || "",
+    },
     contactDetails: {
       email: userEmail,
       mobile: userMobile,

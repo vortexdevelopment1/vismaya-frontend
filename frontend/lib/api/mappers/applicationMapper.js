@@ -23,8 +23,15 @@ export function fromApi(app) {
   // Extract Talent info
   const talentObj = app.talentId && typeof app.talentId === "object" ? app.talentId : null;
   const talentId = talentObj ? String(talentObj._id || talentObj.id) : (app.talentId ? String(app.talentId) : "");
-  const talentName = talentObj?.name || talentObj?.stageName || app.talentName || "Talent Candidate";
-  const talentEmail = talentObj?.email || app.talentEmail || "";
+  const talentName = talentObj?.name || 
+    talentObj?.stageName || 
+    talentObj?.userId?.name || 
+    talentObj?.personalDetails?.stageName || 
+    talentObj?.personalDetails?.fullName || 
+    talentObj?.personal?.fullName || 
+    app.talentName || 
+    "Talent Candidate";
+  const talentEmail = talentObj?.email || talentObj?.userId?.email || app.talentEmail || "";
   const talentAvatar = talentObj?.profilePhoto || talentObj?.avatar || app.talentAvatar || "";
 
   // Normalize custom answers
