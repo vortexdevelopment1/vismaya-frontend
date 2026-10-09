@@ -7,32 +7,81 @@ import { useRouter } from "next/navigation";
 import PublicNav from "@/components/PublicNav";
 import PublicFooter from "@/components/PublicFooter";
 import { useAuth } from "@/context/AuthContext";
+import GoogleButton from "@/components/auth/GoogleButton";
+import { USE_MOCK } from "@/lib/api/config";
 import { ArrowRight, User, Mail, Lock, Building2, AlertCircle } from "lucide-react";
 
 export default function RegisterPage() {
   const router = useRouter();
   const { register, getDashboardPath } = useAuth();
 
-  const [selectedRole, setSelectedRole] = useState("talent");
-  const [name, setName] = useState("Aanya Sharma");
-  const [email, setEmail] = useState("aanya.sharma@vismaya.io");
-  const [password, setPassword] = useState("secretpassword123");
+  const [selectedRole, setSelectedRole] = useState(null);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [googleError, setGoogleError] = useState("");
 
   const handleRoleChange = (role) => {
     setSelectedRole(role);
+    setFormError("");
+    setGoogleError("");
     if (role === "organization") {
       setName("Zee Films Studio");
       setEmail("casting@zeefilms.com");
+      setPassword("secretpassword123");
     } else {
       setName("Aanya Sharma");
       setEmail("aanya.sharma@vismaya.io");
+      setPassword("secretpassword123");
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    if (!selectedRole) {
+      setGoogleError("Choose Talent or Industry first");
+      return;
+    }
+
+    setGoogleError("");
+    setGoogleLoading(true);
+
+    try {
+      if (USE_MOCK) {
+        const isOrg = selectedRole === "organization";
+        const payload = {
+          role: isOrg ? "organization" : "talent",
+          email: email || (isOrg ? "casting@zeefilms.com" : "aanya.sharma@vismaya.io"),
+          password: "password123",
+          name: (name && name.trim()) || (isOrg ? "Zee Films Studio" : "Aanya Sharma"),
+          studioName: isOrg ? ((name && name.trim()) || "Zee Films Studio") : undefined,
+        };
+
+        const res = await register(payload);
+        if (res.success && res.user) {
+          router.push(getDashboardPath(res.user.role));
+        } else {
+          setGoogleError(res.error || "Registration failed. Please try again.");
+        }
+      } else {
+        // TODO(integration): call authService.googleLogin with the Google credential (backend: POST /api/auth/google)
+        setGoogleError("Google sign-in is not connected yet.");
+      }
+    } catch (err) {
+      setGoogleError(err.message || "An unexpected error occurred during Google registration.");
+    } finally {
+      setGoogleLoading(false);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!selectedRole) {
+      setFormError("Please choose Talent or Industry first.");
+      return;
+    }
     if (!name || !email || !password) {
       setFormError("Please fill in all required registration fields.");
       return;
@@ -52,7 +101,7 @@ export default function RegisterPage() {
 
       const res = await register(payload);
       if (res.success && res.user) {
-        router.push(getDashboardPath());
+        router.push(getDashboardPath(res.user.role));
       } else {
         setFormError(res.error || "Registration failed. Please try again.");
       }
@@ -261,6 +310,40 @@ export default function RegisterPage() {
                 <span>{isSubmitting ? "Creating Account..." : "Complete Registration"}</span>
                 <ArrowRight size={15} />
               </button>
+
+              {/* Divider with "or" */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  margin: "2px 0",
+                  gap: "12px",
+                }}
+              >
+                <div style={{ flex: 1, height: "1px", backgroundColor: "rgba(255, 255, 255, 0.14)" }} />
+                <span
+                  style={{
+                    fontSize: "12px",
+                    fontWeight: "600",
+                    color: "#7e89a3",
+                    textTransform: "lowercase",
+                    letterSpacing: "0.04em",
+                  }}
+                >
+                  or
+                </span>
+                <div style={{ flex: 1, height: "1px", backgroundColor: "rgba(255, 255, 255, 0.14)" }} />
+              </div>
+
+              {/* Google Sign-in / Sign-up Button */}
+              <GoogleButton
+                label="Continue with Google"
+                onClick={handleGoogleSignIn}
+                loading={googleLoading}
+                disabled={!selectedRole}
+                helperText={!selectedRole ? "Choose Talent or Industry first" : ""}
+                error={googleError}
+              />
             </form>
 
             <div style={{ textAlign: "center", marginTop: "24px", fontSize: "13px", color: "#a3acc2" }}>

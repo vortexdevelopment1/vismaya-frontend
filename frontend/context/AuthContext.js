@@ -140,7 +140,7 @@ export function AuthProvider({ children }) {
     isTalent: isTalent(user?.role),
     isRecruiter: isRecruiter(user?.role),
     isAdmin: isAdmin(user?.role),
-    getDashboardPath: () => getDashboardPath(user?.role),
+    getDashboardPath: (overrideRole) => getDashboardPath(overrideRole || user?.role),
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

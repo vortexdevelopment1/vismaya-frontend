@@ -7,6 +7,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import PublicNav from "@/components/PublicNav";
 import PublicFooter from "@/components/PublicFooter";
 import { useAuth } from "@/context/AuthContext";
+import GoogleButton from "@/components/auth/GoogleButton";
+import { USE_MOCK } from "@/lib/api/config";
 import { ArrowRight, Lock, Mail, Sparkles, AlertCircle } from "lucide-react";
 
 function LoginFormContent() {
@@ -19,6 +21,35 @@ function LoginFormContent() {
   const [password, setPassword] = useState("password123");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [googleError, setGoogleError] = useState("");
+
+  const handleGoogleSignIn = async () => {
+    setGoogleError("");
+    setGoogleLoading(true);
+
+    try {
+      if (USE_MOCK) {
+        const res = await login({ email: email || "aanya.sharma@vismaya.io", password: "password123" });
+        if (res.success && res.user) {
+          if (redirectPath) {
+            router.push(redirectPath);
+          } else {
+            router.push(getDashboardPath(res.user.role));
+          }
+        } else {
+          setGoogleError(res.error || "Google sign-in failed. Please check your credentials.");
+        }
+      } else {
+        // TODO(integration): call authService.googleLogin with the Google credential (backend: POST /api/auth/google)
+        setGoogleError("Google sign-in is not connected yet.");
+      }
+    } catch (err) {
+      setGoogleError(err.message || "An unexpected error occurred during Google sign-in.");
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -36,7 +67,7 @@ function LoginFormContent() {
         if (redirectPath) {
           router.push(redirectPath);
         } else {
-          router.push(getDashboardPath());
+          router.push(getDashboardPath(res.user.role));
         }
       } else {
         setFormError(res.error || "Login failed. Please check your credentials.");
@@ -257,6 +288,38 @@ function LoginFormContent() {
           <span>{isSubmitting ? "Signing in..." : "Sign In to Vismaya"}</span>
           <ArrowRight size={15} />
         </button>
+
+        {/* Divider with "or" */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            margin: "2px 0",
+            gap: "12px",
+          }}
+        >
+          <div style={{ flex: 1, height: "1px", backgroundColor: "rgba(255, 255, 255, 0.14)" }} />
+          <span
+            style={{
+              fontSize: "12px",
+              fontWeight: "600",
+              color: "#7e89a3",
+              textTransform: "lowercase",
+              letterSpacing: "0.04em",
+            }}
+          >
+            or
+          </span>
+          <div style={{ flex: 1, height: "1px", backgroundColor: "rgba(255, 255, 255, 0.14)" }} />
+        </div>
+
+        {/* Google Sign-in Button */}
+        <GoogleButton
+          label="Continue with Google"
+          onClick={handleGoogleSignIn}
+          loading={googleLoading}
+          error={googleError}
+        />
       </form>
 
       <div style={{ textAlign: "center", marginTop: "24px", fontSize: "13px", color: "#a3acc2" }}>
