@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { authService } from "@/lib/api/services/authService";
 import { getAuthToken, setAuthToken, removeAuthToken } from "@/lib/api/client";
 import { toFrontendRole, getDashboardPath, isTalent, isRecruiter, isAdmin } from "@/lib/api/roles";
@@ -11,9 +12,11 @@ const AuthContext = createContext(null);
 const STORAGE_USER_KEY = "vismaya_user_data";
 
 export function AuthProvider({ children }) {
+  const router = useRouter();
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [error, setError] = useState(null);
 
   // Restore session on mount (SSR safe)
@@ -109,7 +112,8 @@ export function AuthProvider({ children }) {
     }
   }, [saveSession]);
 
-  const logout = useCallback(async () => {
+  const logout = useCallback(async (redirectPath = "/") => {
+    setIsLoggingOut(true);
     setIsLoading(true);
     try {
       await authService.logout();
@@ -117,9 +121,15 @@ export function AuthProvider({ children }) {
       // ignore network errors on logout
     } finally {
       clearSession();
+      if (typeof window !== "undefined" && redirectPath) {
+        router.push(redirectPath);
+      }
       setIsLoading(false);
+      setTimeout(() => {
+        setIsLoggingOut(false);
+      }, 500);
     }
-  }, [clearSession]);
+  }, [clearSession, router]);
 
   const normalizedRole = user?.role ? toFrontendRole(user.role) : null;
   const isAuthenticated = Boolean(user && (USE_MOCK || token));
@@ -131,6 +141,7 @@ export function AuthProvider({ children }) {
     rawRole: user?.role || null,
     isLoading,
     isAuthenticated,
+    isLoggingOut,
     error,
     login,
     register,

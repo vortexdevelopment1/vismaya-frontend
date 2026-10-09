@@ -315,11 +315,10 @@ export default function RecruiterSidebar({ mobileOpen = false, onCloseMobile }) 
             </div>
 
             <Link
-              href="/login"
+              href="/"
               onClick={async (e) => {
                 e.preventDefault();
-                await logout();
-                router.push("/login");
+                await logout("/");
               }}
               title="Logout of Organization Portal"
               style={{

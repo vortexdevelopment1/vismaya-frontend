@@ -146,6 +146,11 @@ function LoginFormContent() {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px" }}>
           <Link
             href="/talent/dashboard"
+            onClick={() => {
+              if (USE_MOCK) {
+                login({ email: "aanya.sharma@vismaya.io", password: "password123" });
+              }
+            }}
             style={{
               fontSize: "11px",
               textAlign: "center",
@@ -170,6 +175,11 @@ function LoginFormContent() {
           </Link>
           <Link
             href="/recruiter/dashboard"
+            onClick={() => {
+              if (USE_MOCK) {
+                login({ email: "recruiter@zeefilms.com", password: "password123" });
+              }
+            }}
             style={{
               fontSize: "11px",
               textAlign: "center",
@@ -194,6 +204,11 @@ function LoginFormContent() {
           </Link>
           <Link
             href="/admin/dashboard"
+            onClick={() => {
+              if (USE_MOCK) {
+                login({ email: "admin@vismaya.io", password: "password123" });
+              }
+            }}
             style={{
               fontSize: "11px",
               textAlign: "center",

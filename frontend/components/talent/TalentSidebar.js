@@ -324,11 +324,10 @@ export default function TalentSidebar({ mobileOpen = false, onCloseMobile }) {
             </Link>
 
             <Link
-              href="/login"
+              href="/"
               onClick={async (e) => {
                 e.preventDefault();
-                await logout();
-                router.push("/login");
+                await logout("/");
               }}
               title="Logout of Vismaya"
               style={{

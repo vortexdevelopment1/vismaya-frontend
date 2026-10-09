@@ -3,17 +3,16 @@
 import React, { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import { USE_MOCK } from "@/lib/api/config";
 import { toFrontendRole, toBackendRole } from "@/lib/api/roles";
 
 export default function RequireRole({ allowedRoles = [], children }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { user, role, isLoading, isAuthenticated, getDashboardPath } = useAuth();
+  const { user, role, isLoading, isAuthenticated, isLoggingOut, getDashboardPath } = useAuth();
 
   useEffect(() => {
-    // In mock mode, route guards do not block navigation to maintain demo parity
-    if (USE_MOCK) return;
+    // If the user is in the middle of an intentional logout, do not redirect to /login
+    if (isLoggingOut) return;
 
     if (!isLoading) {
       if (!isAuthenticated) {
@@ -32,18 +31,18 @@ export default function RequireRole({ allowedRoles = [], children }) {
         });
 
         if (!isAllowed) {
-          router.replace(getDashboardPath());
+          router.replace(getDashboardPath(user.role));
         }
       }
     }
-  }, [isLoading, isAuthenticated, user, role, allowedRoles, pathname, router, getDashboardPath]);
+  }, [isLoading, isAuthenticated, isLoggingOut, user, role, allowedRoles, pathname, router, getDashboardPath]);
 
-  // In mock mode, always render children directly
-  if (USE_MOCK) {
-    return <>{children}</>;
+  // If logging out or unauthenticated, render nothing to avoid content/login flash
+  if (isLoggingOut || !isAuthenticated) {
+    return null;
   }
 
-  // Real mode: show sleek glass loading screen while verifying session
+  // Show sleek glass loading screen while verifying session
   if (isLoading) {
     return (
       <div
@@ -96,11 +95,7 @@ export default function RequireRole({ allowedRoles = [], children }) {
     );
   }
 
-  // If unauthenticated or unauthorized during real mode redirect, render null / loading
-  if (!isAuthenticated) {
-    return null;
-  }
-
+  // Double-check role authorization
   if (allowedRoles.length > 0 && user) {
     const userFeRole = toFrontendRole(user.role);
     const userBeRole = toBackendRole(user.role);
@@ -116,3 +111,4 @@ export default function RequireRole({ allowedRoles = [], children }) {
 
   return <>{children}</>;
 }
+
